@@ -1,0 +1,71 @@
+.root{box-sizing:border-box}
+:root{
+	--bg: #fff8f0;
+	--card: #fff6ef;
+	--muted: #6b5a4a;
+	--accent-1: #ff7a18;
+	--accent-2: #ffb26b;
+	--surface: #fffaf6;
+	--accent-3: #ff9a3c;
+}
+*{box-sizing:border-box}
+body{font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif;margin:0;background:linear-gradient(180deg,var(--surface),#ffffff);color:#0b2533;min-height:100vh;padding:28px}
+.container{max-width:980px;margin:0 auto}
+.card{background:var(--card);border-radius:12px;padding:80px 26px 26px 26px;box-shadow:0 8px 30px rgba(16,24,40,0.08);border:1px solid rgba(15,23,42,0.04)}
+
+/* toolbar inside card */
+.card{position:relative}
+.toolbar{position:absolute;top:18px;right:18px;display:flex;gap:8px;align-items:center;z-index:10}
+.toolbar .btn-ghost, .toolbar .btn-primary{padding:8px 10px;font-size:13px}
+.toolbar .btn-ghost {background: rgba(255,255,255,0.85); border-radius:8px}
+.toolbar .btn-primary {box-shadow: 0 6px 12px rgba(16,24,40,0.08)}
+h1{font-size:32px;margin:0 0 12px 0;color:var(--accent-1)}
+label{display:block;margin-top:12px;font-weight:700;color:var(--muted)}
+input[type=text], input[type=password], input{width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid rgba(11,22,33,0.06);background:transparent;color:inherit}
+.controls{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+button{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+.btn-primary{background:linear-gradient(90deg,var(--accent-2),var(--accent-3));color:white}
+.btn-ghost{background:transparent;border:1px solid rgba(11,22,33,0.06);color:var(--muted)}
+.output{background:linear-gradient(180deg,#fffdfa,#fff6ef);padding:18px;border-radius:8px;white-space:normal;max-height:720px;overflow:auto;border:1px solid rgba(11,22,33,0.04);color:#072231}
+.section-title{margin-top:18px;font-size:18px;color:#0b2b3a}
+.small{font-size:13px;color:var(--muted)}
+.footer{margin-top:12px;color:var(--muted);font-size:13px}
+
+/* Markdown content styles */
+.output h1{color:var(--accent-1);font-size:22px;margin-top:14px;margin-bottom:8px;font-weight:800}
+.output h2{color:#8a4f1a;font-size:20px;margin-top:12px;margin-bottom:8px;font-weight:800}
+.output h3{color:#6b3d12;font-size:18px;margin-top:10px;margin-bottom:6px;font-weight:700}
+.output h4{color:#4f2e0f;font-size:16px;margin-top:8px;margin-bottom:6px;font-weight:600}
+.output p{line-height:1.7;color:#24323a;margin:8px 0}
+.output a{color:var(--accent-3);font-weight:700;text-decoration:underline}
+.output ul, .output ol{margin-left:20px;color:#24323a}
+
+/* Improve heading spacing in previews for readability */
+.output h1 + p, .output h2 + p, .output h3 + p { margin-top:6px }
+
+/* Slightly reduce size of top-level card title so preview headings stand out */
+.card > h1 { font-size:28px }
+/* Additional step styling to improve readability */
+.output ol { padding-left: 22px; margin: 12px 0 }
+.output ol li{ margin: 10px 0; font-size:18px; color:#6b3d12; font-weight:700 }
+.output ol li::marker { color: var(--accent-3); font-weight:800; font-size:18px }
+.output ol li p{ display:inline }
+.output ol.tp-steps { list-style-type: decimal; list-style-position: outside; background: linear-gradient(90deg, rgba(255,122,24,0.03), transparent); padding: 12px 22px 12px 44px; border-radius: 8px; margin:12px 0 }
+.output ol.tp-steps li { margin: 10px 0; font-size:18px; color:var(--accent-1); font-weight:700; line-height:1.3; position:relative }
+.output ol.tp-steps li::marker { color: var(--accent-3); font-weight:900; font-size:20px; margin-right:8px }
+.output ol.tp-steps li strong, .output ol.tp-steps li em { color: inherit }
+.output ol.tp-steps li a { color: var(--accent-3); text-decoration:underline }
+
+/* Custom step block (explicit numbers) */
+.tp-steps{background:linear-gradient(90deg, rgba(255,122,24,0.03), transparent); padding:12px 16px; border-radius:8px}
+.tp-step{display:flex;gap:12px;align-items:flex-start;padding:8px 0}
+.tp-step-num{background:var(--accent-3);color:white;border-radius:999px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:0 0 36px}
+.tp-step-text{flex:1;font-size:18px;color:#24323a;font-weight:600}
+.tp-step-text a{color:var(--accent-3);text-decoration:underline}
+.output li{margin:6px 0}
+.output em{color:#566066}
+.output strong{color:#1b2b33}
+.output code{background:#fff2e6;padding:2px 6px;border-radius:4px;border:1px solid rgba(0,0,0,0.04)}
+.output pre{background:#fff2e6;padding:12px;border-radius:6px;overflow:auto}
+.output blockquote{border-left:4px solid var(--accent-2);padding-left:12px;color:#40535a;margin:12px 0}
+
