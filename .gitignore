@@ -28,3 +28,4 @@ node_modules/
 # Specific project env
 chapter_03_BLAST_FW_JIRA_AI_AGENT/.env
 chapter_03_BLAST_FW_JIRA_AI_AGENT/testplan-app/node_modules/
+.vercel

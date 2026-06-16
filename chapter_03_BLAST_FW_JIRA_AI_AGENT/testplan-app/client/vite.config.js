@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// Proxy `/api` during development to the backend server running on port 4000
 export default defineConfig({
+  plugins: [react()],
   server: {
     proxy: {
       '/api': {
