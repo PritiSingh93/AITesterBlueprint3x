@@ -1,0 +1,168 @@
+{
+  "name": "AI_3X_02_JIRA_Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi I am QABuddy!",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -400,
+        96
+      ],
+      "id": "0176c477-fcbc-4d29-876a-5689f29e48c7",
+      "name": "When chat message received",
+      "webhookId": "4a07077b-b205-4eaf-9815-b2729f727c9c"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a QA automation engineer with 15 years of experience. You will get the details of the Jira ticket through the chat. Your task is to create a Jira ticket with proper steps to reproduce and proper instructions like Jira. Use the Jira tool attached. \n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -144,
+        192
+      ],
+      "id": "04df886e-b596-47f5-a2dd-205e0df894cb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        352
+      ],
+      "id": "6a1148e5-474d-49e4-86c4-c04fef6a5389",
+      "name": "QWEN Brain",
+      "credentials": {
+        "groqApi": {
+          "id": "rotHXFgDZ2gHUueO",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "project": {
+          "__rl": true,
+          "value": "10033",
+          "mode": "list",
+          "cachedResultName": "VWO Project"
+        },
+        "issueType": {
+          "__rl": true,
+          "value": "10042",
+          "mode": "list",
+          "cachedResultName": "Bug"
+        },
+        "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.jiraTool",
+      "typeVersion": 1,
+      "position": [
+        112,
+        336
+      ],
+      "id": "3f6fe47f-1c04-421b-a5c1-13670e339476",
+      "name": "Create JIRA ticket in the VWO project",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "ez9qdNyEbmagXm0x",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -112,
+        352
+      ],
+      "id": "52e083aa-8929-48e7-999d-65c91d6dbda4",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QWEN Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create JIRA ticket in the VWO project": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "93bc6cbc-ef0d-41c2-bb42-7bcb831e7e97",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8005f0069f1cf5df4dc00f46deab8c0ac930550c19a54f961b19bfd4aafa7bab"
+  },
+  "nodeGroups": [],
+  "id": "YDJijmRorBd1zgee",
+  "tags": [
+    {
+      "name": "AI3X",
+      "id": "gSluiPjvWIAcdvbE",
+      "updatedAt": "2026-06-07T06:31:53.552Z",
+      "createdAt": "2026-06-07T06:31:53.552Z"
+    }
+  ]
+}

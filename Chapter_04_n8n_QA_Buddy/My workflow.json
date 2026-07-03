@@ -1,0 +1,101 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Punnu. How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -176,
+        -16
+      ],
+      "id": "a8fa4154-e378-46c7-a530-2ace3943f19a",
+      "name": "When chat message received",
+      "webhookId": "cd3c525b-c850-49bf-badb-6975dbe99362"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Punnu Reply :) You are an SAP Assistant. You will only answer based on the queries related to SAP. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "05280e95-dcdb-4568-ae84-3a520e4a8aba",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        192
+      ],
+      "id": "88184322-e4a5-41c5-8b56-04871a8704e3",
+      "name": "QWEN Brain",
+      "credentials": {
+        "groqApi": {
+          "id": "m4YHvL50OIngJj7J",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QWEN Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "38ce0305-e6ac-4871-b576-d97d51523f63",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4d66198368f6d884c7aa400632e836b78fabc43288d1d2143aa72c96fe9969f0"
+  },
+  "nodeGroups": [],
+  "id": "wv2tOyQRv6rxesE0",
+  "tags": [
+    {
+      "name": "AI_3X_QA_n8n_QATestBuddy",
+      "id": "sIi6BYJmpUwVnE6O",
+      "updatedAt": "2026-06-16T20:56:11.426Z",
+      "createdAt": "2026-06-16T20:56:11.426Z"
+    }
+  ]
+}

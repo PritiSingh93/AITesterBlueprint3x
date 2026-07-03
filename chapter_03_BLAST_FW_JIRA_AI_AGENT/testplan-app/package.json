@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "concurrently \"nodemon server/index.js --watch server\" \"cd client && npm run dev\"",
     "start": "node server/index.js",
-    "install:client": "cd client && npm install"
+    "install:client": "cd client && npm install",
+    "build": "cd client && npm run build"
   },
   "dependencies": {
     "cors": "^2.8.5",
