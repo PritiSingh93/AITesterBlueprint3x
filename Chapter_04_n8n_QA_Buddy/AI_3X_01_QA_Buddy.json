@@ -1,0 +1,101 @@
+{
+  "name": "AI_3X_01_QA_Buddy",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi I am QABuddy!",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -192,
+        -176
+      ],
+      "id": "61494c3e-370e-48db-bfa6-a699a5033f5a",
+      "name": "When chat message received",
+      "webhookId": "4a07077b-b205-4eaf-9815-b2729f727c9c"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a QA assistant. You will only answer the queries related to QA. Expected answer will be in a technical answer which is related to QA only. \n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        64,
+        -128
+      ],
+      "id": "e6c55c0e-a40e-4490-bdb5-faccf061b4a5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        48
+      ],
+      "id": "c62e90f3-0464-4237-b507-93eed858724c",
+      "name": "QWEN Brain",
+      "credentials": {
+        "groqApi": {
+          "id": "rotHXFgDZ2gHUueO",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QWEN Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d34b7830-8d2f-40e0-be14-86d661ce7a50",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8005f0069f1cf5df4dc00f46deab8c0ac930550c19a54f961b19bfd4aafa7bab"
+  },
+  "nodeGroups": [],
+  "id": "YDJijmRorBd1zgee",
+  "tags": [
+    {
+      "name": "AI3X",
+      "id": "gSluiPjvWIAcdvbE",
+      "updatedAt": "2026-06-07T06:31:53.552Z",
+      "createdAt": "2026-06-07T06:31:53.552Z"
+    }
+  ]
+}
