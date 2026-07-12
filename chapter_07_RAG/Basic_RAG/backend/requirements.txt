@@ -1,0 +1,15 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-dotenv>=1.0
+pypdf>=4.2
+pdfplumber>=0.11
+chromadb>=0.5
+nomic>=3.1
+groq>=0.9
+numpy>=1.26
+python-multipart>=0.0.9
+
+# OCR fallback for PDFs with no extractable text layer (see README for the
+# Tesseract + Poppler system-binary install steps these require).
+pytesseract>=0.3.10
+pdf2image>=1.17

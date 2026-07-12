@@ -29,3 +29,15 @@ node_modules/
 chapter_03_BLAST_FW_JIRA_AI_AGENT/.env
 chapter_03_BLAST_FW_JIRA_AI_AGENT/testplan-app/node_modules/
 .vercel
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# RAG Explorer (chapter_07)
+chapter_07_RAG/Basic_RAG/backend/chroma_db/
+chapter_07_RAG/Basic_RAG/backend/.env
+chapter_07_RAG/Basic_RAG/frontend/.env
+chapter_07_RAG/Basic_RAG/frontend/dist/
