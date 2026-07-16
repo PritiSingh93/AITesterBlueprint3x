@@ -34,9 +34,15 @@ def ingest():
             "Upload a requirements file first.",
         )
 
-    vectorstore.reset_collection()
-    vectors = embeddings.embed_documents([c["text"] for c in chunks])
-    vectorstore.add_chunks(chunks, vectors)
+    try:
+        vectorstore.reset_collection()
+        vectors = embeddings.embed_documents([c["text"] for c in chunks])
+        vectorstore.add_chunks(chunks, vectors)
+    except Exception as exc:
+        raise HTTPException(
+            502,
+            f"Ingestion pipeline failed during embedding/storage ({type(exc).__name__}): {exc}.",
+        ) from exc
 
     return {
         "documents_ingested": len({c["source"] for c in chunks}),

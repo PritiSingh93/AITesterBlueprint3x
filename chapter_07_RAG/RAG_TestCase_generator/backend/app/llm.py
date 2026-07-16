@@ -69,24 +69,47 @@ TABLE_SYSTEM_PROMPT = (
     "Generate exactly the requested number of rows. Distribute Type across "
     "a mix of Positive, Negative, and Edge cases. Keep every cell on a "
     "single line with no literal line breaks - separate steps within the "
-    "Steps cell using '; '. TC IDs must be sequential, e.g. TC-001, TC-002. "
+    "Steps cell using '; '. TC IDs must be sequential and must start at the "
+    "number given in the user prompt (e.g. TC-021, TC-022, ...). "
     "If the context doesn't contain enough information to justify the "
     "requested number of distinct test cases, generate as many genuinely "
     "distinct ones as the context supports rather than inventing filler."
 )
 
 
-def generate_test_case_table(module: str, count: int, chunks: list[dict]) -> str:
+def generate_test_case_table(
+    module: str,
+    count: int,
+    chunks: list[dict],
+    start_index: int = 1,
+    exclude_titles: list[str] | None = None,
+) -> str:
     """Generates `count` test case rows as a markdown table for one module,
-    grounded only in the retrieved chunks. Used by the batch generator."""
+    grounded only in the retrieved chunks. Used by the batch generator.
+
+    Repeated calls for the same module retrieve the same chunks (retrieval
+    is deterministic), so `start_index` keeps TC IDs sequential across
+    calls and `exclude_titles` steers the model away from repeating
+    scenarios it already generated in earlier calls for this module.
+    """
     client = get_client()
     context = _build_context(chunks)
+    end_index = start_index + count - 1
     user_prompt = (
         f"Context:\n{context}\n\n"
         f"Module: {module}\n"
         f"Generate exactly {count} test cases for this module using only "
-        "the context above."
+        "the context above. "
+        f"Number the TC IDs sequentially starting at TC-{start_index:03d} "
+        f"through TC-{end_index:03d}."
     )
+    if exclude_titles:
+        already = "\n".join(f"- {t}" for t in exclude_titles)
+        user_prompt += (
+            "\n\nThese test case titles were already generated in earlier "
+            "batches for this module - do not repeat them or generate close "
+            f"rephrasings of them; cover new, distinct scenarios instead:\n{already}"
+        )
     max_tokens = min(8000, 180 * count + 300)
 
     completion = client.chat.completions.create(

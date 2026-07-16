@@ -1,15 +1,24 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8010'
 
-async function request(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail || `Request failed (${res.status})`)
+async function request(path, options = {}, retries = 2) {
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      const res = await fetch(`${API_BASE}${path}`, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options,
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.detail || `Request failed (${res.status})`)
+      }
+      return res.json()
+    } catch (err) {
+      if (attempt === retries) {
+        throw err
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)))
+    }
   }
-  return res.json()
 }
 
 export const api = {
@@ -34,13 +43,15 @@ export const api = {
       body: JSON.stringify({ question, top_k: topK }),
     }),
 
-  generateBatch: (module, count) =>
+  generateBatch: (module, count, startIndex, excludeTitles) =>
     request('/api/query', {
       method: 'POST',
       body: JSON.stringify({
         question: `Generate test cases for the ${module} module`,
         module,
         count,
+        start_index: startIndex,
+        exclude_titles: excludeTitles,
       }),
     }),
 }

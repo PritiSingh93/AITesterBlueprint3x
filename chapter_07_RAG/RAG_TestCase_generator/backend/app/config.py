@@ -3,10 +3,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 PROJECT_DIR = BACKEND_DIR.parent
+
+load_dotenv(BACKEND_DIR / ".env")
 
 
 def _resolve_path(value: str, default: Path) -> Path:

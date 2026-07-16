@@ -99,6 +99,7 @@ export default function BatchGeneratorPanel() {
       let generated = 0
       let attempts = 0
       const maxAttempts = Math.ceil(perModuleTarget / batchSize) + 3
+      const moduleTitles = []
 
       while (generated < perModuleTarget && !stopRef.current) {
         attempts += 1
@@ -119,13 +120,17 @@ export default function BatchGeneratorPanel() {
         })
 
         try {
-          const res = await api.generateBatch(moduleName, thisBatch)
+          // start_index keeps TC IDs sequential and exclude_titles steers the
+          // model away from repeating scenarios from earlier batches, since
+          // retrieval returns the same chunks for this module every time.
+          const res = await api.generateBatch(moduleName, thisBatch, generated + 1, moduleTitles.slice(-80))
           const parsed = parseMarkdownTable(res.answer, moduleName)
           if (parsed.length === 0) {
             setErrors((prev) => [...prev, `${moduleName}: got an unparseable response, retrying`])
             continue
           }
           allRows.push(...parsed)
+          moduleTitles.push(...parsed.map((r) => r.title).filter(Boolean))
           generated += parsed.length
           setRows([...allRows])
         } catch (e) {
