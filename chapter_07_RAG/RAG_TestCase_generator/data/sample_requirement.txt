@@ -1,0 +1,7 @@
+Feature: User Login
+
+Users must be able to log in with their email and password. If the email
+is not registered, show an error. If the password is incorrect, show an
+error without revealing whether the email exists. After 5 failed attempts,
+lock the account for 15 minutes. Successful login redirects to the
+dashboard.

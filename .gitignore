@@ -41,3 +41,9 @@ chapter_07_RAG/Basic_RAG/backend/chroma_db/
 chapter_07_RAG/Basic_RAG/backend/.env
 chapter_07_RAG/Basic_RAG/frontend/.env
 chapter_07_RAG/Basic_RAG/frontend/dist/
+
+# RAG Test Case Generator (chapter_07)
+chapter_07_RAG/RAG_TestCase_generator/backend/chroma_db/
+chapter_07_RAG/RAG_TestCase_generator/backend/.env
+chapter_07_RAG/RAG_TestCase_generator/frontend/.env
+chapter_07_RAG/RAG_TestCase_generator/frontend/dist/
