@@ -81,7 +81,9 @@ def extract_pdf_text(path: Path) -> tuple[str, str]:
 
 
 def extract_text_file(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="ignore")
+    # utf-8-sig strips a leading BOM if present (common in Windows-saved
+    # .txt/.md files) and behaves identically to utf-8 otherwise.
+    return path.read_text(encoding="utf-8-sig", errors="ignore")
 
 
 def load_documents(data_dir: Path) -> list[dict]:
