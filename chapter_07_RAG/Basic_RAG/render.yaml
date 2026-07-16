@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: rag-explorer-backend
+    runtime: python
+    plan: free
+    rootDir: chapter_07_RAG/Basic_RAG/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: NOMIC_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.12.4
