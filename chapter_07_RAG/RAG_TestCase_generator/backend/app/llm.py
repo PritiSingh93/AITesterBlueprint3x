@@ -57,3 +57,45 @@ def generate_answer(question: str, chunks: list[dict]) -> str:
         max_tokens=2048,
     )
     return completion.choices[0].message.content
+
+
+TABLE_SYSTEM_PROMPT = (
+    "You are a senior QA engineer generating software test cases from "
+    "product requirements. Use only the provided context chunks - do not "
+    "invent requirements that aren't there. "
+    "Output ONLY a markdown table, nothing before or after it, with exactly "
+    "this header row: "
+    "| TC ID | Module | Type | Title | Preconditions | Steps | Expected Result |\n"
+    "Generate exactly the requested number of rows. Distribute Type across "
+    "a mix of Positive, Negative, and Edge cases. Keep every cell on a "
+    "single line with no literal line breaks - separate steps within the "
+    "Steps cell using '; '. TC IDs must be sequential, e.g. TC-001, TC-002. "
+    "If the context doesn't contain enough information to justify the "
+    "requested number of distinct test cases, generate as many genuinely "
+    "distinct ones as the context supports rather than inventing filler."
+)
+
+
+def generate_test_case_table(module: str, count: int, chunks: list[dict]) -> str:
+    """Generates `count` test case rows as a markdown table for one module,
+    grounded only in the retrieved chunks. Used by the batch generator."""
+    client = get_client()
+    context = _build_context(chunks)
+    user_prompt = (
+        f"Context:\n{context}\n\n"
+        f"Module: {module}\n"
+        f"Generate exactly {count} test cases for this module using only "
+        "the context above."
+    )
+    max_tokens = min(8000, 180 * count + 300)
+
+    completion = client.chat.completions.create(
+        model=GROQ_MODEL,
+        messages=[
+            {"role": "system", "content": TABLE_SYSTEM_PROMPT},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.3,
+        max_tokens=max_tokens,
+    )
+    return completion.choices[0].message.content

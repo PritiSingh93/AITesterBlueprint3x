@@ -2,6 +2,7 @@ import TopNav from './components/TopNav.jsx'
 import PipelineFlow from './components/PipelineFlow.jsx'
 import DocumentPanel from './components/DocumentPanel.jsx'
 import TestCasePanel from './components/TestCasePanel.jsx'
+import BatchGeneratorPanel from './components/BatchGeneratorPanel.jsx'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <DocumentPanel />
           <TestCasePanel />
         </div>
+        <BatchGeneratorPanel />
       </main>
       <footer className="mx-auto max-w-7xl px-4 pb-8 text-center text-xs text-slate-400 sm:px-6 lg:px-8">
         RAG Test Case Generator &middot; Mistral Embed + ChromaDB + Groq

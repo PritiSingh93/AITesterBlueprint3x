@@ -33,4 +33,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ question, top_k: topK }),
     }),
+
+  generateBatch: (module, count) =>
+    request('/api/query', {
+      method: 'POST',
+      body: JSON.stringify({
+        question: `Generate test cases for the ${module} module`,
+        module,
+        count,
+      }),
+    }),
 }

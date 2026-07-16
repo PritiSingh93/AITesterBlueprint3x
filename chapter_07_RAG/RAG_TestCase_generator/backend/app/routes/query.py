@@ -6,9 +6,14 @@ from app import config, embeddings, llm, vectorstore
 router = APIRouter(prefix="/api", tags=["query"])
 
 
+MAX_BATCH_COUNT = 30
+
+
 class QueryRequest(BaseModel):
     question: str
     top_k: int | None = None
+    module: str | None = None
+    count: int | None = None
 
 
 @router.post("/query")
@@ -24,7 +29,12 @@ def run_query(req: QueryRequest):
     top_k = req.top_k or config.TOP_K
     retrieved = vectorstore.query(query_vector, top_k=top_k)
 
-    answer = llm.generate_answer(question, retrieved)
+    if req.count:
+        count = max(1, min(req.count, MAX_BATCH_COUNT))
+        module = req.module or question
+        answer = llm.generate_test_case_table(module, count, retrieved)
+    else:
+        answer = llm.generate_answer(question, retrieved)
 
     return {
         "question": question,
