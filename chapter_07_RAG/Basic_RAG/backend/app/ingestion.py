@@ -96,7 +96,10 @@ def load_documents(data_dir: Path) -> list[dict]:
             continue
         suffix = path.suffix.lower()
         if suffix == ".pdf":
-            text, method = extract_pdf_text(path)
+            try:
+                text, method = extract_pdf_text(path)
+            except Exception:
+                continue
             docs.append({"source": path.name, "text": text, "extraction_method": method})
         elif suffix in SUPPORTED_TEXT_EXT:
             text = extract_text_file(path)
