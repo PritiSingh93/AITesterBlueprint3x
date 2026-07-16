@@ -3,7 +3,7 @@
 A practical, project-driven curriculum for QA engineers learning to use LLMs as a real testing tool — not a toy.
 Each chapter pairs concept material with a hands-on project, a prompt template, and runnable code where applicable.
 
-- **Author:** Pramod Dutta — Principal SDET
+- **Author:** Priti Singh — Swnior Test Engineer SDET
 - **Website:** [The Testing Academy](https://thetestingacademy.com/)
 - **LinkedIn:** [linkedin.com/in/pramoddutta](https://www.linkedin.com/in/pramoddutta/)
 

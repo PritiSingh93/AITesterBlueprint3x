@@ -17,7 +17,7 @@ The application should do the following:
 
 The goal of this application is to demonstrate how a basic RAG pipeline works end-to-end using a local vector database and a React frontend.
 
-*****************************************************************************************************88
+*********************************************************************************************************************************************
 Build a RAG Explorer application using React for the frontend and Node.js/Python for the backend.
 
 Requirements:
