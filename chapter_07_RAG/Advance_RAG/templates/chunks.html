@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Chunks · Advanced RAG Explorer{% endblock %}
+{% block layout %}
+<div class="two-pane">
+  <aside class="left-pane">
+    <p class="pane-title">Filters</p>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <input type="search" id="search" placeholder="Search text / payload…">
+      <label class="small muted">Priority
+        <select id="fPriority" style="width:100%;margin-top:4px"><option value="">Any</option></select></label>
+      <label class="small muted">Module
+        <select id="fModule" style="width:100%;margin-top:4px"><option value="">Any</option></select></label>
+      <label class="small muted">Jira ID
+        <input type="text" id="fJira" placeholder="e.g. VWO-1042" style="width:100%;margin-top:4px"></label>
+      <button class="btn soft" id="applyBtn">Apply filters</button>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <h3>Legend</h3>
+      <p class="small muted"><span class="badge coral">coral outline</span> = chunk used in the most
+        recent chat answer. Each card shows ids, payload, dense preview, sparse preview, and full text.</p>
+    </div>
+  </aside>
+
+  <main class="right-pane">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <h1 class="h1">Collection browser</h1>
+        <p class="lead" style="margin-bottom:0">Every indexed chunk in <span class="mono">vwo_test_cases</span>.</p>
+      </div>
+      <div id="pager" class="small muted"></div>
+    </div>
+    <div id="chunkList" style="margin-top:18px"></div>
+    <div id="pagerBottom" style="display:flex;gap:10px;justify-content:center;margin:20px 0"></div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chunks.js') }}"></script>
+{% endblock %}

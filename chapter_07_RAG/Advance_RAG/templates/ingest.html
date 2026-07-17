@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Ingest · Advanced RAG Explorer{% endblock %}
+{% block layout %}
+<div class="two-pane">
+  <aside class="left-pane">
+    <p class="pane-title">Ingestion stages</p>
+    <div class="stages" id="stageTracker">
+      <div class="stage" data-stage="read"><div class="marker">1</div>
+        <div class="body"><div class="name">Read</div><div class="desc">Parse rows</div></div></div>
+      <div class="stage" data-stage="build"><div class="marker">2</div>
+        <div class="body"><div class="name">Build docs</div><div class="desc">Assemble text</div></div></div>
+      <div class="stage" data-stage="chunk"><div class="marker">3</div>
+        <div class="body"><div class="name">Chunk</div><div class="desc">Split + overlap</div></div></div>
+      <div class="stage" data-stage="embed"><div class="marker">4</div>
+        <div class="body"><div class="name">Embed</div><div class="desc">Dense + sparse</div></div></div>
+      <div class="stage" data-stage="index"><div class="marker">5</div>
+        <div class="body"><div class="name">Index</div><div class="desc">Qdrant upsert</div></div></div>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <h3>bge-m3</h3>
+      <p class="small muted">One model emits a <b>dense</b> vector (semantic, 1024-d) and a
+      <b>sparse</b> lexical vector (exact-term weights) in a single pass — the backbone of hybrid search.</p>
+    </div>
+  </aside>
+
+  <main class="right-pane">
+    <h1 class="h1">Live ingestion</h1>
+    <p class="lead">Watch each row become a chunk, an embedding, and finally a point in Qdrant.
+      Every stage streams over Server-Sent Events.</p>
+
+    <div id="startRow" class="card">
+      <div style="display:flex;gap:12px;align-items:center">
+        <button class="btn" id="startBtn">▶ Start ingestion</button>
+        <span class="muted small" id="startHint">Embeds every row and rebuilds the collection.</span>
+      </div>
+    </div>
+
+    <div id="stageCards"></div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/ingest.js') }}"></script>
+{% endblock %}

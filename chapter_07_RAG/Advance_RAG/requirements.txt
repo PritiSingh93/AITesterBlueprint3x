@@ -1,0 +1,16 @@
+# --- Core app -------------------------------------------------------------
+flask>=3.0
+python-dotenv>=1.0
+pandas>=2.1
+openpyxl>=3.1            # .xlsx / .xls reading
+groq>=0.9               # query rewriting + generation
+
+# --- Vector DB ------------------------------------------------------------
+qdrant-client>=1.10      # embedded (local file store) or server mode
+
+# --- Real hybrid models (optional but recommended) ------------------------
+# If these are not installed, the app auto-falls back to a dependency-free
+# "lite" backend so the whole UI still runs. Install them for real bge-m3
+# dense+sparse embeddings and the bge-reranker-v2-m3 cross-encoder.
+FlagEmbedding>=1.2
+torch>=2.1

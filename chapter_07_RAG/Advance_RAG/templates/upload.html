@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Upload · Advanced RAG Explorer{% endblock %}
+{% block layout %}
+<div class="two-pane">
+  <aside class="left-pane">
+    <p class="pane-title">Pipeline</p>
+    <div class="stages" id="stageTracker">
+      <div class="stage active" data-stage="upload"><div class="marker">1</div>
+        <div class="body"><div class="name">Upload</div><div class="desc">Pick a CSV / XLSX</div></div></div>
+      <div class="stage" data-stage="columns"><div class="marker">2</div>
+        <div class="body"><div class="name">Choose columns</div><div class="desc">Text vs metadata</div></div></div>
+      <div class="stage" data-stage="ingest"><div class="marker">3</div>
+        <div class="body"><div class="name">Ingest</div><div class="desc">Embed + index</div></div></div>
+    </div>
+    <div class="card" style="margin-top:22px">
+      <h3>What is this?</h3>
+      <p class="small muted">A teaching demo of an <b>advanced RAG</b> pipeline over 2,000 VWO
+      test cases: hybrid <b>dense + sparse</b> retrieval (bge-m3), <b>RRF</b> fusion,
+      cross-encoder <b>re-ranking</b>, Groq <b>query rewriting</b> &amp; generation.</p>
+    </div>
+  </aside>
+
+  <main class="right-pane">
+    <h1 class="h1">Upload your test cases</h1>
+    <p class="lead">Drop the VWO test-case sheet (or any CSV/XLSX). We'll preview it, then let
+      you choose which columns get embedded and which are kept as filterable metadata.</p>
+
+    <div class="card" id="dropCard">
+      <div id="dropzone" style="border:2px dashed var(--line-2);border-radius:12px;padding:34px;text-align:center;cursor:pointer;transition:.2s">
+        <div style="font-size:34px">📄</div>
+        <p style="margin:8px 0 4px;font-weight:700">Drag &amp; drop a file, or click to browse</p>
+        <p class="small muted">.csv · .xlsx · .xls — try <span class="kbd">testcase/VWO_2000_Test_Cases.csv</span></p>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden>
+      </div>
+      <div id="uploadStatus" class="flow-note" style="display:none"></div>
+    </div>
+
+    <div id="previewArea"></div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}

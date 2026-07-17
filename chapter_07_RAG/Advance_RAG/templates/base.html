@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Advanced RAG Explorer{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%233f6ea5'/><text y='72' x='50' font-size='60' text-anchor='middle' fill='white' font-family='sans-serif'>R</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot">R</span>
+      <span>Advanced RAG Explorer <small>· The Testing Academy</small></span>
+    </div>
+    <nav class="nav">
+      <a href="/upload" class="{{ 'active' if active=='upload' }}"><span class="step">1</span> Upload</a>
+      <a href="/ingest" class="{{ 'active' if active=='ingest' }}"><span class="step">2</span> Ingest</a>
+      <a href="/chunks" class="{{ 'active' if active=='chunks' }}"><span class="step">3</span> Chunks</a>
+      <a href="/chat"   class="{{ 'active' if active=='chat' }}"><span class="step">4</span> Chat</a>
+    </nav>
+    <div class="status-pills" id="statusPills">
+      <span class="pill" id="pillBackend"><span class="led"></span> backend</span>
+      <span class="pill" id="pillGroq"><span class="led"></span> groq</span>
+      <span class="pill" id="pillCollection"><span class="led"></span> 0 chunks</span>
+    </div>
+  </header>
+  {% block layout %}{% endblock %}
+</div>
+<script>
+  // Shared: hydrate the status pills from /api/status on every page.
+  async function refreshStatus() {
+    try {
+      const s = await (await fetch('/api/status')).json();
+      const be = document.getElementById('pillBackend');
+      be.classList.add('on');
+      be.innerHTML = `<span class="led"></span> ${s.backend === 'real' ? 'bge-m3 + reranker' : 'lite (local)'}`;
+      const gq = document.getElementById('pillGroq');
+      gq.className = 'pill ' + (s.groq ? 'on' : 'warn');
+      gq.innerHTML = `<span class="led"></span> groq ${s.groq ? 'ready' : 'fallback'}`;
+      const col = document.getElementById('pillCollection');
+      const n = s.collection && s.collection.points ? s.collection.points : 0;
+      col.className = 'pill ' + (n ? 'on' : 'off');
+      col.innerHTML = `<span class="led"></span> ${n.toLocaleString()} chunks`;
+      window.__status = s;
+      document.dispatchEvent(new CustomEvent('status', { detail: s }));
+    } catch (e) { /* ignore */ }
+  }
+  refreshStatus();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

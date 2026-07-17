@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced RAG Explorer — How it works</title>
+<meta name="description" content="An animated, diagram-driven walkthrough of an advanced RAG pipeline: hybrid dense+sparse retrieval (bge-m3), Qdrant, RRF fusion, cross-encoder re-ranking, Groq query rewriting & generation — built over 2,000 VWO test cases.">
+<style>
+  :root{
+    /* light graphite grey + steel-blue (token names kept for zero-churn) */
+    --cream:#eceef2;--cream-2:#dfe3ea;--paper:#ffffff;--ink:#1f2329;--ink-soft:#474e58;
+    --ink-faint:#7b828d;--coral:#3f6ea5;--coral-deep:#2f5688;--coral-soft:#c6d6ea;--coral-wash:#e9f0f8;
+    --sage:#5c8a68;--blue:#3f8a93;--gold:#c9a227;--line:#d9dde4;--line-2:#c6ccd5;
+    --shadow:0 1px 2px rgba(28,33,40,.05),0 12px 34px rgba(28,33,40,.08);
+    --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:var(--sans);background:var(--cream);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:var(--coral-deep);text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{letter-spacing:-.02em;line-height:1.15}
+  code,.mono{font-family:var(--mono)}
+  ::selection{background:var(--coral-soft)}
+
+  /* Nav */
+  nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:18px;height:60px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800}
+  .logo .dot{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--coral),var(--coral-deep));display:grid;place-items:center;color:#fff;box-shadow:0 3px 8px rgba(47,86,136,.4)}
+  nav .links{margin-left:auto;display:flex;gap:6px}
+  nav .links a{padding:7px 13px;border-radius:999px;color:var(--ink-soft);font-weight:600;font-size:14px}
+  nav .links a:hover{background:var(--cream-2)}
+  @media(max-width:720px){nav .links{display:none}}
+
+  /* Hero */
+  header.hero{padding:78px 0 40px;position:relative;overflow:hidden}
+  .hero .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;z-index:0}
+  .hero .b1{width:420px;height:420px;background:var(--coral-soft);top:-120px;right:-80px}
+  .hero .b2{width:340px;height:340px;background:#e7efe6;bottom:-160px;left:-100px}
+  .hero .wrap{position:relative;z-index:1}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--coral-wash);color:var(--coral-deep);font-weight:700;font-size:13px;padding:6px 14px;border-radius:999px;border:1px solid var(--coral-soft)}
+  .hero h1{font-size:clamp(34px,6vw,60px);font-weight:850;margin:20px 0 12px}
+  .hero h1 .g{background:linear-gradient(120deg,var(--coral),var(--coral-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.sub{font-size:19px;color:var(--ink-soft);max-width:66ch;margin:0 0 26px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;padding:12px 22px;border-radius:12px;border:1px solid var(--coral-deep);background:var(--coral);color:#fff;cursor:pointer;transition:transform .08s,filter .15s}
+  .btn:hover{filter:brightness(1.06)}.btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;color:var(--coral-deep)}
+  .stat-row{display:flex;gap:26px;margin-top:34px;flex-wrap:wrap}
+  .stat-row .s .n{font-size:30px;font-weight:850;letter-spacing:-.03em}
+  .stat-row .s .k{font-size:13px;color:var(--ink-faint)}
+
+  /* Sections */
+  section{padding:64px 0;border-top:1px solid var(--line)}
+  .kicker{color:var(--coral-deep);font-weight:800;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+  section h2{font-size:clamp(26px,4vw,38px);font-weight:800;margin:8px 0 14px}
+  section .lede{font-size:18px;color:var(--ink-soft);max-width:70ch}
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow)}
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+  .chip{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--cream-2);color:var(--ink-soft)}
+  .chip.coral{background:var(--coral-wash);color:var(--coral-deep)}
+  .chip.sage{background:#e7efe6;color:var(--sage)}.chip.blue{background:#e5edf5;color:var(--blue)}
+
+  /* Pipeline diagram */
+  .pipe{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin-top:14px}
+  .node{flex:1;min-width:150px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;position:relative;box-shadow:var(--shadow)}
+  .node .ic{width:42px;height:42px;margin:0 auto 8px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:var(--coral-wash);color:var(--coral-deep)}
+  .node .t{font-weight:800;font-size:14px}
+  .node .d{font-size:12px;color:var(--ink-faint)}
+  .arrow{align-self:center;color:var(--coral);font-size:24px;padding:0 4px;flex:0 0 auto}
+  @media(max-width:820px){.arrow{transform:rotate(90deg)}.node{min-width:100%}}
+  .flowline{stroke:var(--coral);stroke-width:2.5;fill:none;stroke-dasharray:8 8;animation:dash 1s linear infinite}
+  @keyframes dash{to{stroke-dashoffset:-16}}
+
+  /* dense vs sparse toggle */
+  .toggle{display:inline-flex;background:var(--cream-2);border-radius:999px;padding:4px;gap:4px;margin:6px 0 14px}
+  .toggle button{border:none;background:transparent;font-weight:700;font-size:14px;padding:8px 18px;border-radius:999px;cursor:pointer;color:var(--ink-soft)}
+  .toggle button.on{background:var(--coral);color:#fff;box-shadow:0 2px 8px rgba(47,86,136,.3)}
+  .vecbars{display:flex;gap:4px;align-items:flex-end;height:80px;margin-top:6px}
+  .vecbars span{flex:1;background:linear-gradient(var(--coral),var(--coral-deep));border-radius:3px 3px 0 0;min-height:3px;transition:height .5s cubic-bezier(.2,.7,.2,1)}
+  .toks{display:flex;flex-wrap:wrap;gap:7px}
+  .toks .tk{font-family:var(--mono);font-size:12.5px;padding:4px 10px;border-radius:9px;background:var(--coral-wash);color:var(--coral-deep);border:1px solid var(--coral-soft)}
+  .toks .tk b{opacity:.55;margin-left:6px;font-weight:600}
+
+  /* RRF */
+  .rrf{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:14px;align-items:center;margin-top:12px}
+  @media(max-width:820px){.rrf{grid-template-columns:1fr}}
+  .ranklist{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .ranklist h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint)}
+  .row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;font-size:13px;margin-bottom:5px;background:var(--paper);border:1px solid var(--line)}
+  .row .r{width:20px;height:20px;border-radius:6px;background:var(--cream-2);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--ink-soft)}
+  .row.hot{border-color:var(--coral);background:var(--coral-wash)}
+  .row.hot .r{background:var(--coral);color:#fff}
+  .formula{font-family:var(--mono);font-size:13px;background:var(--ink);color:#e8ecf1;border-radius:12px;padding:14px 16px;overflow-x:auto}
+  .formula .hl{color:#8fb4e0}
+
+  /* rerank reorder */
+  .reorder{display:grid;grid-template-columns:1fr 40px 1fr;gap:10px;align-items:center;margin-top:12px}
+  @media(max-width:820px){.reorder{grid-template-columns:1fr}}
+  .stack{display:flex;flex-direction:column;gap:6px}
+  .stack .it{display:flex;gap:8px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;transition:.5s}
+  .stack .it.up{border-color:var(--sage);background:#eef4ed}
+  .stack .it.down{opacity:.6}
+  .midarrow{text-align:center;color:var(--coral);font-size:26px}
+
+  /* code */
+  pre{background:var(--ink);color:#e8ecf1;border-radius:14px;padding:18px 20px;overflow-x:auto;font-size:13px;line-height:1.7;box-shadow:var(--shadow)}
+  pre .c{color:#868d97}pre .k{color:#8fb4e0}pre .s{color:#b9c99a}
+  .step{display:flex;gap:16px;margin-bottom:8px}
+  .step .num{flex:0 0 34px;height:34px;border-radius:50%;background:var(--coral);color:#fff;font-weight:800;display:grid;place-items:center;box-shadow:0 3px 8px rgba(47,86,136,.35)}
+  .step .b h3{margin:4px 0 2px;font-size:16px}
+  .step .b p{margin:0 0 12px;color:var(--ink-soft);font-size:14.5px}
+
+  footer{padding:48px 0 64px;border-top:1px solid var(--line);color:var(--ink-faint);font-size:14px}
+  .badge-tech{display:inline-flex;align-items:center;gap:7px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-weight:600;font-size:13.5px}
+  .tech-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .tag{font-family:var(--mono);font-size:12px;color:var(--coral-deep)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <span class="logo"><span class="dot">R</span> Advanced RAG Explorer</span>
+    <span class="links">
+      <a href="#why">Why</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#hybrid">Hybrid</a>
+      <a href="#fusion">RRF</a>
+      <a href="#rerank">Re-rank</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#build">Vibe-coded</a>
+    </span>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="wrap">
+    <span class="eyebrow">● The Testing Academy · RAG deep-dive</span>
+    <h1>How I built an <span class="g">Advanced RAG</span><br>over 2,000 VWO test cases</h1>
+    <p class="sub">A production-shaped retrieval pipeline — hybrid <b>dense + sparse</b> search,
+      <b>Reciprocal Rank Fusion</b>, a cross-encoder <b>re-ranker</b>, LLM <b>query rewriting</b>,
+      and grounded <b>generation</b> — wrapped in a two-pane explorer that shows every stage as it runs.</p>
+    <div class="cta">
+      <a class="btn" href="#architecture">See the architecture ↓</a>
+      <a class="btn ghost" href="#build">How it was vibe-coded</a>
+    </div>
+    <div class="stat-row">
+      <div class="s"><div class="n" data-count="2000">0</div><div class="k">VWO test cases indexed</div></div>
+      <div class="s"><div class="n" data-count="24">0</div><div class="k">product modules</div></div>
+      <div class="s"><div class="n">2</div><div class="k">vectors per chunk (dense + sparse)</div></div>
+      <div class="s"><div class="n">5</div><div class="k">query-time stages</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- WHY -->
+<section id="why">
+  <div class="wrap reveal">
+    <span class="kicker">The problem</span>
+    <h2>Basic RAG breaks down at scale</h2>
+    <p class="lede">A single dense embedding + top-k lookup is fine for a handful of documents. On a real
+      corpus it starts missing answers — exact IDs slip through the cracks, near-duplicates crowd out
+      the truly relevant row, and one phrasing of a question only reaches one neighbourhood of the index.</p>
+    <div class="grid g3" style="margin-top:22px">
+      <div class="card"><span class="chip coral">Recall gap</span>
+        <h3 style="margin:10px 0 4px;font-size:17px">Semantics miss exact terms</h3>
+        <p style="color:var(--ink-soft);font-size:14.5px;margin:0">Ask for <code>VWO-1357</code> and a
+          purely semantic vector shrugs. Lexical signal is needed for IDs, error codes, and jargon.</p></div>
+      <div class="card"><span class="chip blue">Precision gap</span>
+        <h3 style="margin:10px 0 4px;font-size:17px">Top-k ≠ most relevant</h3>
+        <p style="color:var(--ink-soft);font-size:14.5px;margin:0">The vector nearest in cosine space
+          isn't always the best answer. You need a second, sharper opinion before you trust the top rows.</p></div>
+      <div class="card"><span class="chip sage">Phrasing gap</span>
+        <h3 style="margin:10px 0 4px;font-size:17px">One query, one blind spot</h3>
+        <p style="color:var(--ink-soft);font-size:14.5px;margin:0">"Lockout" and "too many attempts"
+          land in different regions. Rewriting the query widens the net before you ever search.</p></div>
+    </div>
+    <p class="lede" style="margin-top:24px">This explorer closes all three gaps — and <b>shows you</b> each fix happening.</p>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="wrap reveal">
+    <span class="kicker">The architecture</span>
+    <h2>One model for two vectors, one DB for both</h2>
+    <p class="lede">Every chunk is embedded once by <b>bge-m3</b>, which emits a dense semantic vector
+      <i>and</i> a sparse lexical vector in a single forward pass. Both live in the same Qdrant collection.</p>
+
+    <div class="pipe" style="margin-top:26px">
+      <div class="node"><div class="ic">📄</div><div class="t">CSV / XLSX</div><div class="d">2,000 test cases</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="ic">✂️</div><div class="t">Chunk</div><div class="d">1 row = 1 chunk</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="ic">🧬</div><div class="t">bge-m3</div><div class="d">dense + sparse</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="ic">🗄️</div><div class="t">Qdrant</div><div class="d">hybrid collection</div></div>
+    </div>
+    <p style="text-align:center;color:var(--ink-faint);font-size:13px;margin:14px 0 0">Stage 1 · Ingest — build the index once</p>
+  </div>
+</section>
+
+<!-- HYBRID -->
+<section id="hybrid">
+  <div class="wrap reveal">
+    <span class="kicker">Hybrid retrieval</span>
+    <h2>Dense knows meaning. Sparse knows words.</h2>
+    <p class="lede">The same chunk produces two complementary vectors. Toggle between them to see what each captures.</p>
+
+    <div class="toggle" id="vecToggle">
+      <button class="on" data-v="dense">Dense · semantic</button>
+      <button data-v="sparse">Sparse · lexical</button>
+    </div>
+
+    <div class="grid g2">
+      <div class="card">
+        <div id="denseView">
+          <h3 style="margin:0 0 4px">1,024-dimensional dense vector</h3>
+          <p style="color:var(--ink-soft);font-size:14.5px;margin:0 0 6px">A smooth point in meaning-space.
+            "Account lockout" sits near "too many failed attempts" even with zero shared words.</p>
+          <div class="vecbars" id="denseBars"></div>
+          <p class="mono" style="font-size:12px;color:var(--ink-faint);margin-top:8px">cosine similarity · captures paraphrase &amp; synonymy</p>
+        </div>
+        <div id="sparseView" style="display:none">
+          <h3 style="margin:0 0 4px">Sparse lexical weights</h3>
+          <p style="color:var(--ink-soft);font-size:14.5px;margin:0 0 10px">Mostly zeros, with weight on the
+            tokens that actually appear. This is what nails exact IDs and keywords.</p>
+          <div class="toks">
+            <span class="tk">lockout<b>0.94</b></span><span class="tk">login<b>0.88</b></span>
+            <span class="tk">attempts<b>0.71</b></span><span class="tk">account<b>0.63</b></span>
+            <span class="tk">5<b>0.52</b></span><span class="tk">verify<b>0.34</b></span>
+          </div>
+          <p class="mono" style="font-size:12px;color:var(--ink-faint);margin-top:10px">dot-product on shared tokens · captures exact terms</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px">Why keep both?</h3>
+        <div class="step"><div class="num" style="width:28px;height:28px;font-size:13px">D</div>
+          <div class="b"><h3 style="font-size:15px">Dense wins on intent</h3>
+          <p>"How does VWO handle brute-force logins?" → finds the lockout test with no keyword overlap.</p></div></div>
+        <div class="step"><div class="num" style="width:28px;height:28px;font-size:13px">S</div>
+          <div class="b"><h3 style="font-size:15px">Sparse wins on specifics</h3>
+          <p><code>VWO-1357</code>, <code>bge-reranker-v2-m3</code>, "MTU overage" → exact matches dense would blur.</p></div></div>
+        <p style="margin:6px 0 0;color:var(--ink-soft);font-size:14.5px">Run <b>both</b> searches, then fuse the two ranked lists. That's the next stage. ↓</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RRF -->
+<section id="fusion">
+  <div class="wrap reveal">
+    <span class="kicker">Reciprocal Rank Fusion</span>
+    <h2>Merging two rankings, fairly</h2>
+    <p class="lede">Dense and sparse scores aren't on the same scale, so we can't just add them. RRF ignores the
+      raw scores and rewards <b>rank position</b> instead — a chunk that ranks high on <i>either</i> list floats up.</p>
+
+    <div class="formula" style="margin-top:18px">RRF(chunk) = Σ<sub>lists</sub> &nbsp;1 / (<span class="hl">k</span> + rank)&nbsp;&nbsp;&nbsp;<span style="color:#868d97">// k = 60 smooths out noisy tail ranks</span></div>
+
+    <div class="rrf">
+      <div class="ranklist">
+        <h4>Dense ranking</h4>
+        <div class="row" data-id="A"><span class="r">1</span> TC-1614 lockout (slow net)</div>
+        <div class="row" data-id="B"><span class="r">2</span> TC-1928 lockout (retry)</div>
+        <div class="row hot" data-id="C"><span class="r">3</span> TC-0358 lockout (happy)</div>
+        <div class="row" data-id="D"><span class="r">4</span> TC-0044 login rate limit</div>
+      </div>
+      <div class="ranklist">
+        <h4>Sparse ranking</h4>
+        <div class="row hot" data-id="C"><span class="r">1</span> TC-0358 lockout (happy)</div>
+        <div class="row" data-id="D"><span class="r">2</span> TC-0044 login rate limit</div>
+        <div class="row" data-id="A"><span class="r">3</span> TC-1614 lockout (slow net)</div>
+        <div class="row" data-id="E"><span class="r">4</span> TC-1300 captcha on fail</div>
+      </div>
+      <div class="ranklist" style="background:var(--coral-wash);border-color:var(--coral-soft)">
+        <h4 style="color:var(--coral-deep)">Fused (RRF)</h4>
+        <div class="row hot" data-id="C"><span class="r">1</span> TC-0358 &nbsp;<span class="mono" style="font-size:11px">.0323</span></div>
+        <div class="row" data-id="A"><span class="r">2</span> TC-1614 &nbsp;<span class="mono" style="font-size:11px">.0325</span></div>
+        <div class="row" data-id="D"><span class="r">3</span> TC-0044 &nbsp;<span class="mono" style="font-size:11px">.0320</span></div>
+        <div class="row" data-id="B"><span class="r">4</span> TC-1928 &nbsp;<span class="mono" style="font-size:11px">.0161</span></div>
+      </div>
+    </div>
+    <p style="color:var(--ink-faint);font-size:13.5px;margin-top:12px">Hover a row: <b>TC-0358</b> was only #3 on dense but #1 on sparse — fusion lifts it to the overall top.</p>
+  </div>
+</section>
+
+<!-- RERANK -->
+<section id="rerank">
+  <div class="wrap reveal">
+    <span class="kicker">Cross-encoder re-ranking</span>
+    <h2>A sharper second opinion</h2>
+    <p class="lede">Bi-encoders (bge-m3) embed the query and chunk <i>separately</i> — fast, but approximate.
+      The <b>bge-reranker-v2-m3</b> cross-encoder reads the query and each candidate <b>together</b>, so it
+      judges true relevance far more precisely. We only run it on the ~20 fused candidates, then keep the top 4.</p>
+
+    <div class="reorder">
+      <div class="stack">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);font-weight:700">Before · RRF order</div>
+        <div class="it">1 · TC-0358 lockout (happy)</div>
+        <div class="it">2 · TC-1614 lockout (slow net)</div>
+        <div class="it">3 · TC-0044 login rate limit</div>
+        <div class="it">4 · TC-1928 lockout (retry)</div>
+      </div>
+      <div class="midarrow">→</div>
+      <div class="stack">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);font-weight:700">After · cross-encoder</div>
+        <div class="it up">1 · TC-0358 &nbsp;<span class="mono" style="font-size:11px;color:var(--sage)">+8.4</span></div>
+        <div class="it up">2 · TC-0044 &nbsp;<span class="mono" style="font-size:11px;color:var(--sage)">↑ from 3</span></div>
+        <div class="it down">3 · TC-1614</div>
+        <div class="it down">4 · TC-1928</div>
+      </div>
+    </div>
+    <p style="color:var(--ink-faint);font-size:13.5px;margin-top:12px">The reranker promoted the row that most directly answers the question — the model that actually reads both texts wins.</p>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="wrap reveal">
+    <span class="kicker">Query time</span>
+    <h2>Five stages, every time you ask</h2>
+    <p class="lede">This is exactly what the left-hand tracker animates in the <code>/chat</code> tab.</p>
+
+    <div class="pipe" style="margin-top:24px">
+      <div class="node"><div class="ic">✍️</div><div class="t">1 · Rewrite</div><div class="d">Groq alt phrasings</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="ic">🔍</div><div class="t">2 · Search</div><div class="d">dense + sparse</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="ic">⚖️</div><div class="t">3 · Fuse</div><div class="d">RRF</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="ic">🎯</div><div class="t">4 · Re-rank</div><div class="d">cross-encoder</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="ic">💬</div><div class="t">5 · Generate</div><div class="d">Groq, grounded</div></div>
+    </div>
+
+    <div class="grid g2" style="margin-top:26px">
+      <div class="card">
+        <h3 style="margin:0 0 8px">Two modes, auto-detected</h3>
+        <p style="color:var(--ink-soft);font-size:14.5px;margin:0 0 10px"><span class="chip sage">Answer</span>
+          Grounded Q&amp;A — cites <code>[Chunk N]</code> for every claim, says "I don't know" when the context is silent.</p>
+        <p style="color:var(--ink-soft);font-size:14.5px;margin:0"><span class="chip coral">Generate</span>
+          "Create a test case for VWO coupon codes" → drafts Title / Preconditions / Steps / Expected / Priority / Tags,
+          using the retrieved rows as templates.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px">Grounded, not guessed</h3>
+        <pre style="margin:0"><span class="c"># the answer is built ONLY from retrieved context</span>
+<span class="k">context</span> = top_4_reranked_chunks
+answer = groq(<span class="s">"answer using only this context"</span>, context)
+<span class="c"># → "TC-0358 covers lockout after 5 attempts [Chunk 1]"</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILD -->
+<section id="build">
+  <div class="wrap reveal">
+    <span class="kicker">The vibe-coding story</span>
+    <h2>From a blank folder to a live explorer</h2>
+    <p class="lede">Built conversationally — describe the pipeline, generate the corpus, wire the stages, and let each
+      screen <i>teach</i> what it's doing. Here's the arc.</p>
+
+    <div style="margin-top:22px">
+      <div class="step reveal"><div class="num">1</div><div class="b"><h3>Generate a realistic corpus</h3>
+        <p>A seeded Python generator emits <b>2,000 VWO test cases</b> across 24 modules — Jira keys, priorities,
+          steps, expected results, tags — as a clean CSV. Deterministic, so it regenerates identically.</p></div></div>
+      <div class="step reveal"><div class="num">2</div><div class="b"><h3>Embed once, store hybrid</h3>
+        <p>Each row → one <code>bge-m3</code> pass → a dense + a sparse vector → upserted into an <b>embedded Qdrant</b>
+          collection with named vectors. No Docker; it's just a local file store.</p></div></div>
+      <div class="step reveal"><div class="num">3</div><div class="b"><h3>Make every stage visible</h3>
+        <p>Ingestion streams over <b>Server-Sent Events</b>: watch chunks form (overlap highlighted), embeddings
+          fill a progress bar, and points land in Qdrant — live.</p></div></div>
+      <div class="step reveal"><div class="num">4</div><div class="b"><h3>Retrieve like production</h3>
+        <p>Query rewriting widens recall, dense+sparse run in parallel, RRF fuses them, the cross-encoder sharpens
+          precision, and Groq writes a grounded answer with citations — each step rendered in the trace.</p></div></div>
+      <div class="step reveal"><div class="num">5</div><div class="b"><h3>Degrade gracefully</h3>
+        <p>No GPU or 3 GB download? A dependency-free <b>lite backend</b> (hashing embeddings + lexical reranker)
+          keeps the whole UI running so the <i>shape</i> of every stage is identical on any laptop.</p></div></div>
+    </div>
+
+    <div class="card" style="margin-top:26px">
+      <h3 style="margin:0 0 4px">The stack</h3>
+      <p style="color:var(--ink-soft);font-size:14.5px;margin:0 0 6px">Small, boring, and legible on purpose.</p>
+      <div class="tech-row">
+        <span class="badge-tech">🌶️ <span>Flask</span> <span class="tag">+ SSE</span></span>
+        <span class="badge-tech">🧬 <span>bge-m3</span> <span class="tag">dense+sparse</span></span>
+        <span class="badge-tech">🎯 <span>bge-reranker-v2-m3</span></span>
+        <span class="badge-tech">🗄️ <span>Qdrant</span> <span class="tag">embedded</span></span>
+        <span class="badge-tech">⚡ <span>Groq</span> <span class="tag">gpt-oss-120b</span></span>
+        <span class="badge-tech">🐼 <span>pandas</span></span>
+        <span class="badge-tech">🎨 <span>Vanilla JS</span> <span class="tag">no framework</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <strong>Advanced RAG Explorer</strong> — a teaching demo for The Testing Academy.<br>
+    Hybrid retrieval · RRF · cross-encoder re-ranking · query rewriting · grounded generation.
+    <div style="margin-top:10px" class="tag">bge-m3 · Qdrant · Groq openai/gpt-oss-120b · 2,000 VWO test cases</div>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const io = new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.14});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // Count-up stats
+  const cio = new IntersectionObserver((es)=>es.forEach(e=>{
+    if(!e.isIntersecting) return; const el=e.target; const target=+el.dataset.count; let n=0;
+    const step=Math.max(1,Math.round(target/45));
+    const t=setInterval(()=>{n+=step; if(n>=target){n=target;clearInterval(t)} el.textContent=n.toLocaleString()},22);
+    cio.unobserve(el);
+  }),{threshold:.6});
+  document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
+
+  // Dense bars — random but stable-ish sizes, animate on view
+  const bars = document.getElementById('denseBars');
+  if(bars){ for(let i=0;i<40;i++){const s=document.createElement('span');s.style.height='3px';bars.appendChild(s)} }
+  const bio = new IntersectionObserver((es)=>es.forEach(e=>{
+    if(!e.isIntersecting) return;
+    [...bars.children].forEach((b,i)=>{ setTimeout(()=>{ b.style.height=(6+Math.abs(Math.sin(i*1.7)*Math.cos(i*.5))*70)+'px' }, i*12) });
+    bio.unobserve(e.target);
+  }),{threshold:.4});
+  if(bars) bio.observe(bars);
+
+  // dense/sparse toggle
+  document.querySelectorAll('#vecToggle button').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('#vecToggle button').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    const dense = btn.dataset.v==='dense';
+    document.getElementById('denseView').style.display = dense?'block':'none';
+    document.getElementById('sparseView').style.display = dense?'none':'block';
+  }));
+
+  // RRF row hover: highlight the same chunk id across all three lists
+  document.querySelectorAll('.rrf .row').forEach(row=>{
+    row.addEventListener('mouseenter',()=>{
+      const id=row.dataset.id;
+      document.querySelectorAll('.rrf .row').forEach(r=>r.style.outline = r.dataset.id===id?'2px solid var(--coral)':'none');
+    });
+    row.addEventListener('mouseleave',()=>document.querySelectorAll('.rrf .row').forEach(r=>r.style.outline='none'));
+  });
+</script>
+</body>
+</html>

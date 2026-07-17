@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Chat · Advanced RAG Explorer{% endblock %}
+{% block layout %}
+<div class="two-pane">
+  <aside class="left-pane">
+    <p class="pane-title">Query pipeline</p>
+    <div class="stages" id="stageTracker">
+      <div class="stage" data-stage="rewrite"><div class="marker">1</div>
+        <div class="body"><div class="name">Rewrite</div><div class="desc">Groq alt phrasings</div></div></div>
+      <div class="stage" data-stage="search"><div class="marker">2</div>
+        <div class="body"><div class="name">Hybrid search</div><div class="desc">Dense + sparse</div></div></div>
+      <div class="stage" data-stage="fuse"><div class="marker">3</div>
+        <div class="body"><div class="name">RRF fuse</div><div class="desc">Combine rankings</div></div></div>
+      <div class="stage" data-stage="rerank"><div class="marker">4</div>
+        <div class="body"><div class="name">Re-rank</div><div class="desc">Cross-encoder</div></div></div>
+      <div class="stage" data-stage="generate"><div class="marker">5</div>
+        <div class="body"><div class="name">Generate</div><div class="desc">Grounded answer</div></div></div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <h3>Two modes</h3>
+      <p class="small muted"><b>Answer</b> — grounded Q&amp;A on the test cases.<br>
+        <b>Generate</b> — e.g. <i>"create a new test case for VWO-1234 login rate limiting"</i>
+        drafts a structured test case from retrieved templates.</p>
+    </div>
+    <div id="lastMode"></div>
+  </aside>
+
+  <main class="right-pane">
+    <div class="chat-wrap">
+      <div class="chat-log" id="chatLog">
+        <div class="empty" id="emptyState">
+          <div style="font-size:34px">💬</div>
+          <p style="font-weight:700;margin:8px 0 4px">Ask about the 2,000 VWO test cases</p>
+          <p class="small">Try: <a href="#" class="ex">Which login test cases cover account lockout?</a> ·
+            <a href="#" class="ex">Create a new test case for VWO checkout coupon codes</a> ·
+            <a href="#" class="ex">What Critical priority tests exist for billing?</a></p>
+        </div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="q" placeholder="Ask a question, or say “create a test case for …”" autofocus>
+        <button class="btn" id="sendBtn">Send</button>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}
