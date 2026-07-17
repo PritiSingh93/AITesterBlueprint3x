@@ -15,6 +15,8 @@ def status():
         "data_dir": str(config.DATA_DIR),
         "groq_model": config.GROQ_MODEL,
         "embedding_model": config.MISTRAL_MODEL,
+        "groq_key_set": bool(config.GROQ_API_KEY),
+        "mistral_key_set": bool(config.MISTRAL_API_KEY),
     }
 
 

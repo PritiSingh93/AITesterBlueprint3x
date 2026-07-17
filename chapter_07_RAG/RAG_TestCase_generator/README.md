@@ -56,7 +56,31 @@ npm run dev
 
 Open `http://localhost:5174`.
 
-## 4. Using the app
+## 4. Hosted / live deployment notes
+
+A public frontend is deployed on Vercel and a public FastAPI backend is
+exposed on Render:
+
+- Frontend: `https://ragpipeline1000testcasegenerator-9px2pj294.vercel.app`
+- Backend: `https://rag-testcase-backend.onrender.com`
+
+In the frontend, the API target is configured through
+`frontend/.env` / `frontend/.env.example` using
+`VITE_API_BASE_URL=https://rag-testcase-backend.onrender.com`.
+
+For the deployed backend to work, the following environment variables must be
+set in the Render service dashboard:
+
+- `GROQ_API_KEY`
+- `MISTRAL_API_KEY`
+- `PYTHON_VERSION=3.12.4`
+
+After any backend redeploy or restart, the vector store is rebuilt from the
+current contents of the backend container filesystem. If the deployed service
+is restarted, re-run **Upload PRD / Text** and **Run Ingestion Pipeline**
+again before generating test cases.
+
+## 5. Using the app
 
 1. Click **Upload PRD / Text** to add a requirements document (PDF, `.txt`,
    or `.md`) to `data/`.
@@ -107,8 +131,11 @@ chapter_07_RAG/RAG_TestCase_generator/
 - No OCR fallback — this flow doesn't use one. If a PDF has no extractable
   text layer, it's skipped during ingestion rather than failing the whole
   batch (see `backend/app/ingestion.py`).
-- ChromaDB data persists under `backend/chroma_db/` (git-ignored). Re-running
-  ingestion clears and rebuilds the collection from whatever is currently in
-  `data/`.
+- ChromaDB data persists under `backend/chroma_db/` (git-ignored) for local
+  runs. Re-running ingestion clears and rebuilds the collection from whatever
+  is currently in `data/`.
+- For the Render-deployed backend, uploaded data and Chroma state are
+  container-local. After a redeploy or server reset, re-upload and re-run
+  ingestion before generating test cases again.
 - Groq model defaults to `llama-3.1-8b-instant` (matching the Langflow
   flow); override with `GROQ_MODEL` in `backend/.env` if needed.

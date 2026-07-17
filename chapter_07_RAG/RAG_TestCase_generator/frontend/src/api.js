@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8010'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://rag-testcase-backend.onrender.com'
 
 async function request(path, options = {}, retries = 2) {
   for (let attempt = 0; attempt <= retries; attempt += 1) {
