@@ -1,0 +1,712 @@
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #eef7f1;
+    --bg-tint: #f5fbf8;
+    --paper: #ffffff;
+    --ink: #16241d;
+    --ink-2: #33463c;
+    --muted: #5f7469;
+    --line: #d9ece1;
+    --line-2: #c3e0d1;
+    --mint: #5cc9a0;
+    --mint-deep: #1f7d59;
+    --mint-soft: #e7f6ee;
+    --mint-soft-2: #d7f0e2;
+    --term-bg: #0f241b;
+    --term-line: #1d3a2d;
+    --term-ink: #bdf1d7;
+    --term-comment: #6fae90;
+    --amber: #9a6614;
+    --amber-soft: #fbf1dc;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --w: 1040px;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+
+  .doc {
+    background:
+      radial-gradient(1200px 480px at 18% -8%, #e2f4ea 0%, rgba(226,244,234,0) 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    padding: 0 24px 96px;
+  }
+  .wrap { max-width: var(--w); margin: 0 auto; }
+
+  /* ---- shared type ---- */
+  .kicker {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--mint-deep);
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+  h1, h2, h3 { text-wrap: balance; line-height: 1.15; }
+  .doc p, .doc li { max-width: 68ch; }
+  .doc a { color: var(--mint-deep); text-decoration: none; border-bottom: 1px solid var(--line-2); }
+  .doc a:hover { border-bottom-color: var(--mint-deep); }
+  .doc a:focus-visible,
+  .toc a:focus-visible { outline: 2px solid var(--mint-deep); outline-offset: 3px; border-radius: 3px; }
+  strong { color: var(--ink); font-weight: 650; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--mint-soft);
+    color: var(--mint-deep);
+    padding: 0.08em 0.4em;
+    border-radius: 5px;
+    border: 1px solid var(--line-2);
+  }
+
+  /* ---- header ---- */
+  header.hero {
+    padding: 72px 0 40px;
+    border-bottom: 1px solid var(--line);
+  }
+  header.hero h1 {
+    font-size: clamp(2.3rem, 6vw, 3.5rem);
+    letter-spacing: -0.025em;
+    font-weight: 720;
+    margin: 0 0 16px;
+  }
+  header.hero .lead {
+    font-size: 1.2rem;
+    color: var(--ink-2);
+    max-width: 60ch;
+    margin: 0 0 28px;
+  }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.02em;
+    color: var(--ink-2);
+    background: var(--paper);
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    padding: 5px 12px;
+  }
+  .chip b { color: var(--mint-deep); font-weight: 600; }
+
+  /* ---- toc ---- */
+  nav.toc {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 22px 0 4px;
+  }
+  nav.toc a {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    background: var(--bg-tint);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 11px;
+    border-bottom: 1px solid var(--line);
+  }
+  nav.toc a:hover { border-color: var(--mint); color: var(--mint-deep); background: var(--paper); }
+
+  /* ---- sections ---- */
+  section { padding: 52px 0 8px; scroll-margin-top: 24px; }
+  section > h2 {
+    font-size: 1.7rem;
+    letter-spacing: -0.015em;
+    margin: 6px 0 18px;
+  }
+  section > p { color: var(--ink-2); }
+  h3 { font-size: 1.12rem; margin: 30px 0 8px; letter-spacing: -0.01em; }
+  .rule { height: 1px; background: var(--line); border: 0; margin: 4px 0; }
+
+  /* ---- property grid ---- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 24px 0 8px;
+  }
+  .prop {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--mint);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .prop .t { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mint-deep); }
+  .prop .d { font-size: 0.95rem; color: var(--ink-2); margin-top: 6px; max-width: none; }
+
+  /* ---- architecture diagram ---- */
+  .diagram {
+    background: var(--bg-tint);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 26px 22px;
+    margin: 22px 0 10px;
+    overflow-x: auto;
+  }
+  .plane { position: relative; margin: 0 0 4px; }
+  .plane-label {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px 2px;
+  }
+  .nodes { display: flex; flex-wrap: wrap; gap: 12px; }
+  .nodes.four { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .node {
+    flex: 1 1 200px;
+    min-width: 180px;
+    background: var(--paper);
+    border: 1px solid var(--line-2);
+    border-radius: 11px;
+    padding: 13px 15px;
+    box-shadow: 0 1px 2px rgba(30,110,80,0.05);
+  }
+  .node b { display: block; font-size: 0.98rem; letter-spacing: -0.01em; }
+  .node span { display: block; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  .node.hot { border: 1.5px solid var(--mint); background: var(--mint-soft); box-shadow: 0 2px 10px rgba(92,201,160,0.18); }
+  .node.hot b { color: var(--mint-deep); }
+  .flow { display: flex; align-items: center; gap: 10px; padding: 8px 0 8px 4px; color: var(--mint); }
+  .flow .arrow { font-size: 1.05rem; line-height: 1; }
+  .flow .lbl { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .lane {
+    margin-top: 22px;
+    padding: 16px 16px 18px;
+    background: var(--mint-soft);
+    border: 1px dashed var(--line-2);
+    border-radius: 12px;
+  }
+  .lane .flowline { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .lane .node { background: var(--paper); flex: 0 1 190px; }
+  .lane .ar { color: var(--mint-deep); font-size: 1rem; }
+
+  /* ---- sequence ---- */
+  .seq { margin: 22px 0 8px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--paper); }
+  .seq .participants { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px; background: var(--bg-tint); border-bottom: 1px solid var(--line); }
+  .seq .participants span { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-2); background: var(--paper); border: 1px solid var(--line-2); border-radius: 6px; padding: 4px 9px; }
+  .seq ol { list-style: none; margin: 0; padding: 4px 0; }
+  .seq li { display: grid; grid-template-columns: 34px 1fr; gap: 2px 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); align-items: start; max-width: none; }
+  .seq li:last-child { border-bottom: 0; }
+  .seq .num { font-family: var(--mono); font-size: 0.8rem; font-weight: 600; color: var(--mint-deep); }
+  .seq .hop { font-family: var(--mono); font-size: 0.8rem; color: var(--mint-deep); font-weight: 600; }
+  .seq .hop .to { color: var(--muted); font-weight: 400; }
+  .seq .desc { color: var(--ink-2); font-size: 0.95rem; margin-top: 3px; max-width: 64ch; }
+  .seq li.ret { background: var(--bg-tint); }
+  .seq li.ret .hop { color: var(--muted); }
+
+  /* ---- table ---- */
+  .table-wrap { overflow-x: auto; margin: 20px 0 8px; border: 1px solid var(--line); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; min-width: 620px; }
+  thead th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mint-deep);
+    background: var(--mint-soft);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line-2);
+  }
+  tbody td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); max-width: none; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody td:first-child { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  tbody td .mono { font-family: var(--mono); font-size: 0.82rem; color: var(--mint-deep); }
+
+  /* ---- code / terminal ---- */
+  pre { margin: 18px 0; border-radius: 12px; overflow-x: auto; }
+  pre.code {
+    background: var(--paper);
+    border: 1px solid var(--line-2);
+    padding: 16px 18px;
+  }
+  pre.term {
+    background: var(--term-bg);
+    border: 1px solid var(--term-line);
+    padding: 18px 20px;
+  }
+  pre code {
+    background: none; border: 0; padding: 0; border-radius: 0;
+    font-size: 0.83rem; line-height: 1.6; color: var(--ink);
+    display: block;
+  }
+  pre.term code { color: var(--term-ink); }
+  pre .c { color: var(--muted); }
+  pre.term .c { color: var(--term-comment); }
+  pre .k { color: var(--mint-deep); font-weight: 600; }
+  pre.term .p { color: #7fe3b6; }
+  .filelabel {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted);
+    margin: 20px 0 -8px;
+  }
+
+  /* ---- steps ---- */
+  ol.steps { counter-reset: step; list-style: none; padding: 0; margin: 22px 0 0; }
+  ol.steps > li {
+    position: relative;
+    counter-increment: step;
+    padding: 0 0 26px 56px;
+    max-width: none;
+  }
+  ol.steps > li::before {
+    counter-increment: step;
+    content: counter(step, decimal-leading-zero);
+    position: absolute; left: 0; top: -2px;
+    width: 38px; height: 38px;
+    display: grid; place-items: center;
+    font-family: var(--mono); font-size: 0.82rem; font-weight: 600;
+    color: var(--mint-deep);
+    background: var(--paper);
+    border: 1.5px solid var(--mint);
+    border-radius: 10px;
+  }
+  ol.steps > li::after {
+    content: ""; position: absolute; left: 18px; top: 40px; bottom: 6px;
+    width: 1.5px; background: var(--line-2);
+  }
+  ol.steps > li:last-child::after { display: none; }
+  ol.steps > li h3 { margin: 4px 0 6px; font-size: 1.05rem; }
+  ol.steps > li p { color: var(--ink-2); margin: 0; max-width: 62ch; }
+
+  /* ---- callout ---- */
+  .callout {
+    display: flex; gap: 14px;
+    background: var(--amber-soft);
+    border: 1px solid #ecd9ac;
+    border-left: 3px solid var(--amber);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 22px 0 8px;
+  }
+  .callout .cx { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); font-weight: 700; padding-top: 2px; }
+  .callout p { margin: 0; color: #6f5218; max-width: 64ch; font-size: 0.95rem; }
+  .callout.mint { background: var(--mint-soft); border-color: var(--line-2); border-left-color: var(--mint); }
+  .callout.mint .cx { color: var(--mint-deep); }
+  .callout.mint p { color: var(--ink-2); }
+
+  /* ---- footer ---- */
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: space-between;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    nav.toc a, .node, .doc a { transition: border-color .15s ease, color .15s ease, background .15s ease; }
+  }
+  @media (max-width: 640px) {
+    .doc { font-size: 16px; padding: 0 18px 72px; }
+    header.hero { padding: 48px 0 32px; }
+    ol.steps > li { padding-left: 48px; }
+  }
+</style>
+
+<div class="doc">
+  <div class="wrap">
+
+    <header class="hero">
+      <p class="kicker">Hybrid RAG · System design &amp; backend guide</p>
+      <h1>QABuddyAI</h1>
+      <p class="lead">A retrieval-augmented answer engine for QA teams: ask one question, get a cited answer grounded in your own frameworks, test cases, JIRA history, PRDs, and Jenkins results.</p>
+      <div class="meta">
+        <span class="chip"><b>Stack</b> · FastAPI + Qdrant + TEI + Groq</span>
+        <span class="chip"><b>Retrieval</b> · dense + sparse → RRF → rerank</span>
+        <span class="chip"><b>Deploy</b> · Vercel UI + droplet API</span>
+        <span class="chip"><b>Runtime</b> · Docker Compose</span>
+      </div>
+      <nav class="toc" aria-label="On this page">
+        <a href="#overview">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#sequence">A single /ask call</a>
+        <a href="#stack">Technology stack</a>
+        <a href="#ingestion">Ingestion pipeline</a>
+        <a href="#retrieval">Retrieval pipeline</a>
+        <a href="#generation">Generation</a>
+        <a href="#layout">Repository layout</a>
+        <a href="#build">Build the backend</a>
+        <a href="#api">API</a>
+        <a href="#eval">Evaluation</a>
+        <a href="#deploy">Deployment</a>
+      </nav>
+    </header>
+
+    <section id="overview">
+      <p class="kicker">01 — What it is</p>
+      <h2>One question in, a grounded answer out</h2>
+      <p>QABuddyAI is a <strong>hybrid-retrieval RAG service</strong>. When a QA engineer asks a question, it searches the team's knowledge base by <em>meaning</em> and by <em>keyword</em> at the same time, re-ranks the strongest matches with a cross-encoder, and asks a large language model to answer <strong>only from what it retrieved</strong> — tagging every claim with the source it came from. If nothing relevant is found, it says so rather than inventing an answer.</p>
+      <div class="grid">
+        <div class="prop"><div class="t">Hybrid search</div><div class="d">Dense (BGE-M3) and sparse (BM25) vectors run together, so semantic and exact-keyword matches both surface.</div></div>
+        <div class="prop"><div class="t">RRF fusion</div><div class="d">Qdrant merges the two result lists server-side with Reciprocal Rank Fusion — no client-side glue.</div></div>
+        <div class="prop"><div class="t">Cross-encoder rerank</div><div class="d">bge-reranker-v2-m3 re-scores fused candidates against the question for precision at the top.</div></div>
+        <div class="prop"><div class="t">Grounded &amp; cited</div><div class="d">The LLM answers from retrieved context only; citations are parsed back out of the response.</div></div>
+        <div class="prop"><div class="t">Idempotent ingestion</div><div class="d">Deterministic point IDs + a content-hash manifest mean re-runs update in place, never duplicate.</div></div>
+        <div class="prop"><div class="t">Split deployment</div><div class="d">A Next.js UI on Vercel proxies to the model-and-data backend on a single droplet.</div></div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <p class="kicker">02 — The shape of the system</p>
+      <h2>Architecture</h2>
+      <p>Two paths meet at the vector store. The <strong>query path</strong> (top to bottom) turns a browser question into a cited answer. The <strong>ingestion path</strong> (the strip at the bottom) is a batch job that fills Qdrant from ten source folders. The backend is the one orchestrator that talks to every model service.</p>
+
+      <div class="diagram" role="img" aria-label="Layered architecture diagram. Query path: browser to Next.js UI on Vercel, to server-side route handlers, over HTTPS to nginx on the droplet, to the FastAPI backend. The backend orchestrates four services: Qdrant vector database, TEI BGE-M3 dense embeddings, TEI bge-reranker-v2-m3 reranker, and Groq llama-3.3-70b for generation. A separate batch ingestion lane runs ten data sources through chunkers, dense and sparse embedding, and idempotent upsert into Qdrant.">
+
+        <div class="plane">
+          <span class="plane-label">Client</span>
+          <div class="nodes">
+            <div class="node"><b>QA engineer · Browser</b><span>chat UI · filters · cited sources</span></div>
+          </div>
+        </div>
+        <div class="flow"><span class="arrow">▼</span><span class="lbl">HTTPS</span></div>
+
+        <div class="plane">
+          <span class="plane-label">Vercel — edge</span>
+          <div class="nodes">
+            <div class="node"><b>Next.js UI</b><span>React chat · source-type &amp; module filters</span></div>
+            <div class="node"><b>Route handlers</b><span>/api/ask · /api/health — server-side proxy</span></div>
+          </div>
+        </div>
+        <div class="flow"><span class="arrow">▼</span><span class="lbl">server → server · X-QAB-Key</span></div>
+
+        <div class="plane">
+          <span class="plane-label">Droplet — reverse proxy</span>
+          <div class="nodes">
+            <div class="node"><b>nginx</b><span>TLS · routes /api/ → backend, / → UI</span></div>
+          </div>
+        </div>
+        <div class="flow"><span class="arrow">▼</span><span class="lbl">/ask · /health</span></div>
+
+        <div class="plane">
+          <span class="plane-label">Droplet — application</span>
+          <div class="nodes">
+            <div class="node hot"><b>FastAPI backend</b><span>uvicorn :8000 · retrieve → rerank → generate</span></div>
+          </div>
+        </div>
+        <div class="flow"><span class="arrow">▼</span><span class="lbl">orchestrates</span></div>
+
+        <div class="plane">
+          <span class="plane-label">Model &amp; data services</span>
+          <div class="nodes four">
+            <div class="node"><b>Qdrant</b><span>vector DB · dense + sparse · RRF</span></div>
+            <div class="node"><b>TEI · BGE-M3</b><span>dense embeddings · 1024-d</span></div>
+            <div class="node"><b>TEI · reranker</b><span>bge-reranker-v2-m3</span></div>
+            <div class="node"><b>Groq</b><span>llama-3.3-70b · generate</span></div>
+          </div>
+        </div>
+
+        <div class="lane">
+          <span class="plane-label">Ingestion — batch job → Qdrant</span>
+          <div class="flowline">
+            <div class="node"><b>10 data sources</b><span>repos · CSV · PDF · JIRA · Jenkins · …</span></div>
+            <span class="ar">▶</span>
+            <div class="node"><b>Chunkers</b><span>one per source type</span></div>
+            <span class="ar">▶</span>
+            <div class="node"><b>Embed</b><span>dense (TEI) + sparse (BM25)</span></div>
+            <span class="ar">▶</span>
+            <div class="node"><b>Upsert</b><span>uuid5 ids · content-hash delta</span></div>
+          </div>
+        </div>
+      </div>
+
+      <h3>How a question flows</h3>
+      <ol>
+        <li>The browser posts the question to the Next.js <code>/api/ask</code> route, which forwards it server-side to the droplet — keeping the backend URL hidden and CORS out of the picture.</li>
+        <li>The backend embeds the question as <strong>both</strong> a dense and a sparse vector.</li>
+        <li>Qdrant runs both vectors as prefetch legs and fuses the two ranked lists with <strong>RRF</strong>, returning up to 20 candidates.</li>
+        <li>The candidate texts go to the reranker, which re-scores them against the question; the top&nbsp;<em>k</em> (default 8) survive.</li>
+        <li>Those chunks become the context for Groq, which writes a grounded answer with inline <code>[source: …]</code> tags that are parsed back into a citation list.</li>
+      </ol>
+    </section>
+
+    <section id="sequence">
+      <p class="kicker">03 — One /ask call, end to end</p>
+      <h2>A single question, traced</h2>
+      <p>The same request as a sequence — what each participant does, in order, from the browser tap to the rendered answer. Steps 1–8 go down the stack; 9–10 are the responses coming back up.</p>
+      <div class="seq">
+        <div class="participants">
+          <span>Browser</span><span>Next.js · Vercel</span><span>FastAPI</span><span>TEI · embed</span><span>Qdrant</span><span>TEI · rerank</span><span>Groq</span>
+        </div>
+        <ol>
+          <li><span class="num">1</span><div><div class="hop">Browser → Next.js <span class="to">POST /api/ask</span></div><div class="desc">Sends { question, filters, top_k } to the same-origin route handler.</div></div></li>
+          <li><span class="num">2</span><div><div class="hop">Next.js → FastAPI <span class="to">/ask · X-QAB-Key</span></div><div class="desc">Server-side proxy forwards the request to the droplet; the backend URL never reaches the browser.</div></div></li>
+          <li><span class="num">3</span><div><div class="hop">FastAPI → TEI embed <span class="to">/embed</span></div><div class="desc">Encodes the question as a 1024-d dense vector (BGE-M3).</div></div></li>
+          <li><span class="num">4</span><div><div class="hop">FastAPI <span class="to">in-process</span></div><div class="desc">Encodes the question as a sparse BM25 vector with fastembed.</div></div></li>
+          <li><span class="num">5</span><div><div class="hop">FastAPI → Qdrant <span class="to">query_points</span></div><div class="desc">Dense + sparse prefetch legs, fused server-side with RRF → up to 20 candidates (any filter applied inside each leg).</div></div></li>
+          <li><span class="num">6</span><div><div class="hop">FastAPI → TEI rerank <span class="to">/rerank</span></div><div class="desc">Cross-encoder re-scores the candidate texts against the question.</div></div></li>
+          <li><span class="num">7</span><div><div class="hop">FastAPI <span class="to">top-k</span></div><div class="desc">Keeps the highest-scoring chunks (default 8) with their payloads.</div></div></li>
+          <li><span class="num">8</span><div><div class="hop">FastAPI → Groq <span class="to">chat.completions</span></div><div class="desc">Sends context + question; receives a grounded answer with inline [source: …] tags.</div></div></li>
+          <li class="ret"><span class="num">9</span><div><div class="hop">FastAPI → Next.js <span class="to">200 · JSON</span></div><div class="desc">Returns { answer, citations, sources[] }.</div></div></li>
+          <li class="ret"><span class="num">10</span><div><div class="hop">Next.js → Browser <span class="to">render</span></div><div class="desc">Shows the answer and the expandable, cited source cards.</div></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="stack">
+      <p class="kicker">04 — What it's built from</p>
+      <h2>Technology stack</h2>
+      <p>Every model runs as a service the backend calls over HTTP; nothing heavy is imported into the API process except the in-process BM25 encoder.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Technology</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Vector store</td><td><span class="mono">Qdrant v1.18</span></td><td>Named dense + sparse vectors, IDF-modified BM25, server-side RRF fusion, keyword payload indexes for filtered retrieval.</td></tr>
+            <tr><td>Dense embeddings</td><td><span class="mono">BGE-M3 via TEI</span></td><td>Hugging Face Text Embeddings Inference (CPU). 1024-dim, cosine distance.</td></tr>
+            <tr><td>Sparse embeddings</td><td><span class="mono">BM25 · fastembed</span></td><td>In-process <span class="mono">Qdrant/bm25</span>; pairs with Qdrant's IDF modifier. Swappable to a SPLADE model on TEI.</td></tr>
+            <tr><td>Reranker</td><td><span class="mono">bge-reranker-v2-m3 via TEI</span></td><td>Cross-encoder that re-scores fused candidates against the query.</td></tr>
+            <tr><td>Generation</td><td><span class="mono">Groq · llama-3.3-70b-versatile</span></td><td>Low-latency LLM; grounded answer with citations, temperature 0.2.</td></tr>
+            <tr><td>API</td><td><span class="mono">FastAPI + uvicorn</span></td><td>Python 3.11. Endpoints <span class="mono">/ask</span> and <span class="mono">/health</span>.</td></tr>
+            <tr><td>Web UI</td><td><span class="mono">Next.js 15</span> · <span class="mono">Streamlit</span></td><td>Next.js on Vercel (public); Streamlit as the local/compose fallback.</td></tr>
+            <tr><td>Orchestration</td><td><span class="mono">Docker Compose + nginx</span></td><td>One stack per droplet: qdrant, two TEI services, backend, frontend, nginx.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="ingestion">
+      <p class="kicker">05 — Getting data in</p>
+      <h2>Ingestion pipeline</h2>
+      <p>Ten source folders map to ten <em>source types</em>. <code>run_full_ingest.py</code> walks each folder, hands every file to the chunker for its type, then embeds and upserts the resulting chunks. It's a batch job, decoupled from the live API.</p>
+
+      <h3>The collection is defined once</h3>
+      <p>Two named vectors live side by side on every point — a dense vector and a sparse vector — and the sparse side carries Qdrant's <strong>IDF modifier</strong> so BM25 term weighting is applied at query time. Keyword payload fields get indexes so retrieval can be filtered by <code>source_type</code>, <code>module</code>, <code>jira_id</code>, and more.</p>
+      <p class="filelabel">ingest/embed_and_upsert.py</p>
+      <pre class="code"><code>client.create_collection(
+    collection_name=config.COLLECTION,
+    vectors_config={
+        <span class="k">"dense"</span>: models.VectorParams(
+            size=config.DENSE_DIM, distance=models.Distance.COSINE),
+    },
+    sparse_vectors_config={
+        <span class="c"># IDF pairs with the BM25 sparse embeddings (fastembed)</span>
+        <span class="k">"sparse"</span>: models.SparseVectorParams(modifier=models.Modifier.IDF),
+    },
+)</code></pre>
+
+      <h3>Upserts are idempotent</h3>
+      <p>A point's ID is a <code>uuid5</code> of <code>source_type | source_path | chunk_index</code>. Re-ingesting the same file writes the <em>same</em> IDs, so it overwrites instead of duplicating. A content-hash manifest skips unchanged files, deletes-then-re-embeds changed ones, and removes the vectors of files that disappeared.</p>
+      <p class="filelabel">ingest/embed_and_upsert.py</p>
+      <pre class="code"><code><span class="k">def</span> point_id(source_type, source_path, index):
+    <span class="k">return</span> str(uuid.uuid5(_NAMESPACE, <span class="k">f"</span>{source_type}|{source_path}|{index}<span class="k">"</span>))</code></pre>
+
+      <div class="callout mint">
+        <span class="cx">Note</span>
+        <p>The <code>_NAMESPACE</code> UUID is fixed forever. Changing it shifts every point ID, which turns the next ingest into a full duplicate set.</p>
+      </div>
+    </section>
+
+    <section id="retrieval">
+      <p class="kicker">06 — Finding the right chunks</p>
+      <h2>Retrieval pipeline</h2>
+      <p>Retrieval is where hybrid search happens. The question is embedded twice — dense and sparse — and both go to Qdrant as <strong>prefetch legs</strong> of a single request. Qdrant fuses them with Reciprocal Rank Fusion and returns the merged candidate set; only then does the reranker run.</p>
+      <p class="filelabel">backend/retrieval.py</p>
+      <pre class="code"><code>prefetch = [
+    models.Prefetch(query=dense, using=<span class="k">"dense"</span>,
+                    limit=config.TOP_N_HYBRID, filter=qfilter),
+]
+<span class="k">if</span> sidx:  <span class="c"># skip an all-stopword (empty) sparse vector</span>
+    prefetch.append(models.Prefetch(
+        query=models.SparseVector(indices=sidx, values=svals),
+        using=<span class="k">"sparse"</span>, limit=config.TOP_N_HYBRID, filter=qfilter))
+
+result = client.query_points(
+    config.COLLECTION,
+    prefetch=prefetch,
+    query=models.FusionQuery(fusion=models.Fusion.RRF),
+    limit=config.TOP_N_HYBRID, with_payload=<span class="k">True</span>)
+
+<span class="c"># cross-encoder rerank, then keep the top-k</span>
+ranked = rerank(question, [p.payload[<span class="k">"text"</span>] <span class="k">for</span> p <span class="k">in</span> result.points])</code></pre>
+      <p>Filters passed from the UI — for example <code>{"source_type": ["jira"], "module": "checkout"}</code> — become a Qdrant <code>Filter</code> applied inside <em>both</em> prefetch legs, so the hybrid search itself is scoped, not just the final list.</p>
+    </section>
+
+    <section id="generation">
+      <p class="kicker">07 — Writing the answer</p>
+      <h2>Grounded generation</h2>
+      <p>The runtime prompt is the fenced block of <code>QABuddyAI_Generation_Prompt.md</code>. Retrieved chunks are formatted into <code>{context}</code> and the user's text into <code>{question}</code> — using <code>str.replace</code> rather than <code>str.format</code>, because retrieved code chunks are full of curly braces that would break formatting. Groq answers at temperature&nbsp;0.2, and the citations it emits are pulled back out with a small regex.</p>
+      <p class="filelabel">backend/generate.py</p>
+      <pre class="code"><code>_CITATION_RE = re.compile(<span class="k">r"\[source:\s*([^\]]+)\]"</span>, re.I)
+
+prompt = (load_template()
+          .replace(<span class="k">"{context}"</span>, format_context(chunks))
+          .replace(<span class="k">"{question}"</span>, question))
+<span class="c"># ... Groq chat completion ...</span>
+citations = list(dict.fromkeys(_CITATION_RE.findall(text)))</code></pre>
+      <p>When retrieval returns nothing, the API skips the LLM entirely and returns a fixed “not found in the knowledge base” message — the system never guesses when it has no evidence.</p>
+    </section>
+
+    <section id="layout">
+      <p class="kicker">08 — Where the code lives</p>
+      <h2>Repository layout</h2>
+      <p>Four packages carry the backend — <code>common</code>, <code>ingest</code>, <code>backend</code>, and <code>eval</code> — beside the two UIs and the deployment glue. Everything below sits under <code>chapter_08_QABuddy_AI/</code>.</p>
+      <pre class="code"><code><span class="k">common/</span>                  <span class="c">shared config + embedding clients</span>
+  config.py              <span class="c">env-overridable settings + source registry</span>
+  embedding.py           <span class="c">dense (TEI) · sparse (BM25) · rerank (TEI)</span>
+<span class="k">ingest/</span>                  <span class="c">batch ingestion</span>
+  run_full_ingest.py     <span class="c">walk → chunk → embed → upsert (delta)</span>
+  embed_and_upsert.py    <span class="c">collection schema + idempotent upserts</span>
+  <span class="k">chunkers/</span>              <span class="c">one chunker per source type</span>
+<span class="k">backend/</span>                 <span class="c">the API service</span>
+  main.py                <span class="c">FastAPI · /ask · /health</span>
+  retrieval.py           <span class="c">hybrid search → RRF → rerank</span>
+  generate.py            <span class="c">template fill · Groq · citations</span>
+<span class="k">config/</span>                  <span class="c">runtime config (jql.txt, …)</span>
+<span class="k">eval/</span>                    <span class="c">golden set + evaluation harness</span>
+  eval.py                <span class="c">hit-rate@k · citation · faithfulness</span>
+  golden_set.jsonl       <span class="c">questions + expected sources</span>
+<span class="k">web/</span>                     <span class="c">Next.js UI (deployed to Vercel)</span>
+<span class="k">frontend/</span>                <span class="c">Streamlit UI (local / compose)</span>
+<span class="k">nginx/</span>                   <span class="c">reverse-proxy config</span>
+<span class="k">QABuddyAI_Data_Sources/</span>  <span class="c">the 10 source drop-zones (01–10)</span>
+Dockerfile               <span class="c">backend + ingestion image</span>
+docker-compose.yml       <span class="c">qdrant · 2× TEI · backend · frontend · nginx</span></code></pre>
+    </section>
+
+    <section id="build">
+      <p class="kicker">09 — From empty folder to running service</p>
+      <h2>Build the backend</h2>
+      <p>The backend is four small packages — <code>common/</code> (config + embedding clients), <code>ingest/</code> (chunkers + upsert), <code>backend/</code> (API, retrieval, generation), and <code>config/</code> — wrapped in one Docker image. Here is the order it comes together in.</p>
+
+      <ol class="steps">
+        <li>
+          <h3>Scaffold the layout</h3>
+          <p>Create <code>common/</code>, <code>ingest/chunkers/</code>, <code>backend/</code>, <code>config/</code>, and <code>eval/</code>. Keep every service address and tuning knob in <code>common/config.py</code>, each overridable by an environment variable.</p>
+        </li>
+        <li>
+          <h3>Configure it</h3>
+          <p>Copy the template and fill in the one secret that matters plus the service URLs. In Compose these point at service names; for local dev they point at <code>localhost</code>.</p>
+        </li>
+        <li>
+          <h3>Define the Qdrant collection</h3>
+          <p>Create the collection with named <code>dense</code> (1024-d, cosine) and <code>sparse</code> (IDF modifier) vectors, then add keyword payload indexes for the fields you'll filter on. This runs once, on first ingest.</p>
+        </li>
+        <li>
+          <h3>Build the embedding layer</h3>
+          <p>Three thin HTTP clients in <code>common/embedding.py</code>: dense via <code>TEI /embed</code>, sparse via in-process fastembed BM25, rerank via <code>TEI /rerank</code>. One place to swap models later.</p>
+        </li>
+        <li>
+          <h3>Write per-source chunkers</h3>
+          <p>Each source type gets a chunker that turns a file into <code>Chunk(text, metadata)</code> objects. Metadata (source_type, module, jira_id, tc_id, …) is what makes filtered retrieval possible downstream.</p>
+        </li>
+        <li>
+          <h3>Ingest idempotently</h3>
+          <p>Embed each chunk (dense + sparse) and upsert with its deterministic <code>uuid5</code> ID. The manifest makes the second run a fast delta, not a rebuild.</p>
+        </li>
+        <li>
+          <h3>Implement hybrid retrieval</h3>
+          <p>Embed the query both ways, send both as prefetch legs, let Qdrant fuse with RRF, then rerank the fused candidates and return the top-<em>k</em> with their payloads.</p>
+        </li>
+        <li>
+          <h3>Implement grounded generation</h3>
+          <p>Fill the prompt template with context and question, call Groq, and extract the <code>[source: …]</code> citations from the reply.</p>
+        </li>
+        <li>
+          <h3>Expose the API</h3>
+          <p>A FastAPI app with <code>POST /ask</code> (retrieve → generate → return answer + sources) and <code>GET /health</code> (probe Qdrant, both TEI services, and the Groq key).</p>
+        </li>
+        <li>
+          <h3>Containerize and run</h3>
+          <p>A <code>python:3.11-slim</code> image runs uvicorn; Compose brings up Qdrant, both TEI services, the backend, the UI, and nginx together. Then run the ingest once.</p>
+        </li>
+      </ol>
+
+      <p class="filelabel">First run</p>
+      <pre class="term"><code><span class="c"># 1 — configure</span>
+<span class="p">$</span> cp .env.example .env        <span class="c"># set GROQ_API_KEY, service URLs</span>
+
+<span class="c"># 2 — bring the whole stack up</span>
+<span class="p">$</span> docker compose up -d --build
+
+<span class="c"># 3 — populate Qdrant from the data folders</span>
+<span class="p">$</span> docker compose exec backend python ingest/run_full_ingest.py --source all
+
+<span class="c"># 4 — confirm every service is green</span>
+<span class="p">$</span> curl -s localhost/api/health</code></pre>
+    </section>
+
+    <section id="api">
+      <p class="kicker">10 — Talking to it</p>
+      <h2>API</h2>
+      <h3>POST /ask</h3>
+      <p>A question, optional filters, and an optional context size in; a grounded answer plus the ranked, cited sources out.</p>
+      <pre class="code"><code><span class="c">// request</span>
+{ <span class="k">"question"</span>: <span class="k">"What test cases exist for AB Testing?"</span>,
+  <span class="k">"filters"</span>: { <span class="k">"source_type"</span>: [<span class="k">"test_case"</span>], <span class="k">"module"</span>: <span class="k">"AB Testing"</span> },
+  <span class="k">"top_k"</span>: 8 }
+
+<span class="c">// response</span>
+{ <span class="k">"answer"</span>: <span class="k">"..."</span>,
+  <span class="k">"citations"</span>: [<span class="k">"TC-0810"</span>, <span class="k">"TC-0866"</span>],
+  <span class="k">"sources"</span>: [ { <span class="k">"n"</span>: 1, <span class="k">"source"</span>: <span class="k">"TC-0810"</span>,
+                 <span class="k">"source_type"</span>: <span class="k">"test_case"</span>, <span class="k">"score"</span>: 0.9194,
+                 <span class="k">"module"</span>: <span class="k">"AB Testing"</span>, <span class="k">"text"</span>: <span class="k">"..."</span> } ] }</code></pre>
+      <h3>GET /health</h3>
+      <p>Reports each dependency independently, so a degraded stack is legible at a glance — the UI turns this into the status badge in its sidebar.</p>
+      <pre class="code"><code>{ <span class="k">"healthy"</span>: <span class="k">true</span>,
+  <span class="k">"services"</span>: { <span class="k">"qdrant"</span>: <span class="k">"ok (2005 points)"</span>,
+               <span class="k">"tei_embed"</span>: <span class="k">"ok"</span>, <span class="k">"tei_rerank"</span>: <span class="k">"ok"</span>,
+               <span class="k">"groq"</span>: <span class="k">"ok (key set)"</span> } }</code></pre>
+    </section>
+
+    <section id="eval">
+      <p class="kicker">11 — Tuning with numbers, not vibes</p>
+      <h2>Evaluation</h2>
+      <p>A small golden set plus a harness (<code>eval/eval.py</code>) turns “did that chunking change help?” into a number. Retrieval quality is measured for free; answer quality adds an LLM judge. The golden set is <code>eval/golden_set.jsonl</code> — one JSON object per line: a <code>question</code>, the <code>expected_sources</code> that should back it, and an optional <code>reference_answer</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metric</th><th>What it measures</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td>hit-rate@k</td><td>Is an expected source among the top-<em>k</em> retrieved chunks?</td><td><span class="mono">retrieval only</span></td></tr>
+            <tr><td>Citation correctness</td><td>Do the answer's <code>[source: …]</code> citations point at chunks that actually support the cited claims?</td><td><span class="mono">LLM judge</span></td></tr>
+            <tr><td>Faithfulness</td><td>Is every factual claim grounded in the retrieved context, with nothing invented?</td><td><span class="mono">LLM judge</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The judge is a separate Groq call at temperature 0.0 that returns strict JSON scores from 0 to 1 — so grading is deterministic and cheap to re-run.</p>
+      <pre class="term"><code><span class="p">$</span> python eval/eval.py            <span class="c"># retrieval-only — fast, no LLM cost</span>
+<span class="p">$</span> python eval/eval.py --judge    <span class="c"># + generation + citation & faithfulness</span>
+<span class="p">$</span> python eval/eval.py --k 8      <span class="c"># change the top-k cutoff</span></code></pre>
+      <div class="callout mint">
+        <span class="cx">Practice</span>
+        <p>Run it after every chunking or tuning change and compare the summary line — hit-rate@k, citation correctness, faithfulness — before keeping the change.</p>
+      </div>
+    </section>
+
+    <section id="deploy">
+      <p class="kicker">12 — Where it runs</p>
+      <h2>Deployment</h2>
+      <p>The default is a single <strong>8&nbsp;GB droplet</strong> running the whole Compose stack. The public UI is split off to Vercel: the Next.js app there proxies to the droplet through its own server-side route handlers, so the browser only ever talks to Vercel and the backend URL stays private.</p>
+      <div class="grid">
+        <div class="prop"><div class="t">Vercel</div><div class="d">Next.js UI + <code>/api/*</code> proxy routes. Backend address and key live in server-side env vars.</div></div>
+        <div class="prop"><div class="t">Droplet</div><div class="d">nginx → FastAPI, plus Qdrant and the two TEI model servers. One <code>docker compose up</code>.</div></div>
+      </div>
+      <div class="callout">
+        <span class="cx">Before public</span>
+        <p>Two gates before the droplet API faces the internet: <strong>HTTPS</strong> (Caddy or nginx + Let's Encrypt) with CORS locked to the Vercel domain, and an <strong>API key</strong> on the endpoint. The UI already sends an <code>X-QAB-Key</code> header for the backend to check.</p>
+      </div>
+    </section>
+
+    <footer>
+      <span>QABuddyAI — architecture &amp; backend guide</span>
+      <span>Hybrid RAG · FastAPI · Qdrant · TEI · Groq</span>
+    </footer>
+
+  </div>
+</div>

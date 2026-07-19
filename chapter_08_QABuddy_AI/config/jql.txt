@@ -1,0 +1,4 @@
+# JQL used by ingest/jira_sync.py — one query, lines starting with # ignored.
+# REPLACE with the real JQL (owner will provide).
+# The hourly delta sync automatically appends: AND updated >= -1h
+project = VWO AND issuetype in (Bug, Story) ORDER BY updated DESC

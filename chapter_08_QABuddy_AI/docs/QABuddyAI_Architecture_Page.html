@@ -1,0 +1,164 @@
+<title>QABuddyAI — Architecture</title>
+<style>
+  :root{
+    --bg:#f4f6fa; --panel:#ffffff; --ink:#1f2937; --muted:#5b6775;
+    --faint:#94a0ad; --line:#dbe2ea;
+    --cyan:#0f8f9e; --blue:#2f6fd0; --green:#1f9d57; --purple:#7c53d6;
+    --amber:#b4740a; --pink:#c94d8f; --orange:#c85a1b; --teal:#0d9488; --slate:#7a8798;
+    --mono:"Cascadia Code","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:
+      radial-gradient(1100px 560px at 18% -12%, #dce8fa88, transparent),
+      radial-gradient(900px 480px at 92% 112%, #ece2fa88, transparent),
+      var(--bg);
+    color:var(--ink);font-family:var(--mono);-webkit-font-smoothing:antialiased;}
+  .wrap{padding:26px 24px 34px;}
+  .head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 18px;
+    max-width:1500px;margin:0 auto 4px;}
+  h1{margin:0;font-size:21px;font-weight:600;letter-spacing:.02em;}
+  h1 .b{color:var(--green);}
+  .tagline{color:var(--muted);font-size:12px;}
+  .tagline b{color:var(--cyan);font-weight:600;}
+  .stamp{color:var(--faint);font-size:11px;}
+
+  .board{max-width:1500px;margin:20px auto 0;overflow-x:auto;}
+  .cols{display:grid;grid-template-columns:1.05fr 0.9fr 0.9fr 0.9fr;gap:20px;min-width:1120px;
+    position:relative;}
+  .col{display:flex;flex-direction:column;gap:14px;}
+  .col-h{font-size:12px;letter-spacing:.34em;color:var(--slate);text-align:center;
+    padding-bottom:6px;font-weight:600;}
+
+  /* card */
+  .card{background:var(--panel);border:1.5px solid var(--c,#cdd6e0);border-left-width:4px;
+    border-radius:10px;padding:11px 13px;position:relative;
+    box-shadow:0 1px 2px #1f293710, 0 6px 16px -12px var(--c,#334);}
+  .card .t{color:var(--c);font-weight:700;font-size:13.5px;letter-spacing:.01em;}
+  .card .s{color:var(--muted);font-size:10.5px;margin-top:3px;line-height:1.35;}
+  .card.dim{opacity:.62;}
+
+  /* data-source mini grid */
+  .src{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .src .card{padding:9px 11px;}
+  .src .t{font-size:12px;}
+  .src .s{font-size:9.5px;margin-top:2px;}
+
+  /* vertical connector arrow */
+  .down{display:flex;justify-content:center;color:var(--c,#1f9d57);font-size:14px;line-height:.4;
+    margin:-4px 0;opacity:.75;}
+
+  .stepnum{position:absolute;top:9px;right:11px;font-size:10px;color:var(--faint);}
+
+  /* section connectors */
+  .flowlabel{font-size:10px;color:var(--faint);text-align:center;letter-spacing:.1em;}
+
+  /* UI band */
+  .band{max-width:1500px;margin:22px auto 0;border:1.5px solid var(--line);border-radius:13px;
+    padding:16px 18px;background:linear-gradient(180deg,#ffffff,#f7f9fc);}
+  .band-h{text-align:center;color:var(--slate);letter-spacing:.28em;font-size:12px;margin-bottom:13px;}
+  .band-h b{color:var(--green);}
+  .band-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}
+  .band .card{--c:var(--blue);}
+  @media(max-width:900px){.band-grid{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:560px){.band-grid{grid-template-columns:repeat(2,1fr);}}
+
+  .legend{max-width:1500px;margin:16px auto 0;display:flex;flex-wrap:wrap;gap:8px 16px;
+    font-size:10.5px;color:var(--muted);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;background:currentColor;}
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <h1>QA<span class="b">Buddy</span>AI · Hybrid RAG Architecture</h1>
+    <span class="stamp">chapter 08 · deployed &amp; verified 2026-07-19</span>
+  </div>
+  <div class="head">
+    <p class="tagline">Answers QA questions from the team's own files — searching by <b>meaning</b> + <b>keyword</b> together, always cited.</p>
+  </div>
+
+  <div class="board">
+    <div class="cols">
+
+      <!-- ============ DATA SOURCES ============ -->
+      <div class="col">
+        <div class="col-h">DATA SOURCES</div>
+        <div class="src">
+          <div class="card" style="--c:var(--orange)"><div class="t">Selenium</div><div class="s">Java framework</div></div>
+          <div class="card" style="--c:var(--teal)"><div class="t">Playwright</div><div class="s">TypeScript tests</div></div>
+          <div class="card" style="--c:var(--blue)"><div class="t">Test Cases</div><div class="s">CSV / Xray</div></div>
+          <div class="card" style="--c:var(--purple)"><div class="t">JIRA</div><div class="s">Bugs / Tickets</div></div>
+          <div class="card" style="--c:var(--cyan)"><div class="t">Docs</div><div class="s">Standards / RTM</div></div>
+          <div class="card" style="--c:var(--pink)"><div class="t">PRD / SRS</div><div class="s">Requirements</div></div>
+          <div class="card" style="--c:var(--amber)"><div class="t">Transcripts</div><div class="s">Meetings / Calls</div></div>
+          <div class="card" style="--c:var(--blue)"><div class="t">Jenkins</div><div class="s">CI/CD Logs</div></div>
+          <div class="card" style="--c:var(--teal)"><div class="t">LucidChart</div><div class="s">Diagram exports</div></div>
+          <div class="card dim" style="--c:var(--slate)"><div class="t">Figma</div><div class="s">UI Designs · phase 2</div></div>
+        </div>
+      </div>
+
+      <!-- ============ INGESTION ============ -->
+      <div class="col">
+        <div class="col-h">INGESTION PIPELINE</div>
+        <div class="card" style="--c:var(--cyan)"><span class="stepnum">1</span><div class="t">Detect changes</div><div class="s">SHA-256 manifest · new/changed only</div></div>
+        <div class="down" style="--c:var(--cyan)">▼</div>
+        <div class="card" style="--c:var(--cyan)"><span class="stepnum">2</span><div class="t">Parse &amp; Clean</div><div class="s">PDF/CSV/code · strip BOM · normalize</div></div>
+        <div class="down" style="--c:var(--cyan)">▼</div>
+        <div class="card" style="--c:var(--cyan)"><span class="stepnum">3</span><div class="t">Chunk</div><div class="s">per-source chunker · + metadata tags</div></div>
+        <div class="down" style="--c:var(--cyan)">▼</div>
+        <div class="card" style="--c:var(--cyan)"><span class="stepnum">4</span><div class="t">Embed</div><div class="s">BGE-M3 dense + BM25 sparse</div></div>
+        <div class="down" style="--c:var(--cyan)">▼</div>
+        <div class="card" style="--c:var(--cyan)"><span class="stepnum">5</span><div class="t">Index / Upsert</div><div class="s">Qdrant + payload index</div></div>
+      </div>
+
+      <!-- ============ STORAGE ============ -->
+      <div class="col">
+        <div class="col-h">STORAGE</div>
+        <div class="card" style="--c:var(--green)"><div class="t">Qdrant</div><div class="s">Vector DB · collection 'qabuddy'<br/>dense vectors · 1024-d cosine</div></div>
+        <div class="card" style="--c:var(--amber)"><div class="t">BM25 Sparse</div><div class="s">keyword vectors · IDF modifier</div></div>
+        <div class="card" style="--c:var(--purple)"><div class="t">Payload Index</div><div class="s">source_type · module · ids<br/>→ filtered retrieval</div></div>
+        <div class="card dim" style="--c:var(--slate)"><div class="t">State</div><div class="s">manifest.json · ingest/.state</div></div>
+      </div>
+
+      <!-- ============ QUERY ============ -->
+      <div class="col">
+        <div class="col-h">QUERY PIPELINE</div>
+        <div class="card" style="--c:var(--green)"><div class="t">User Query</div><div class="s">QA question · + optional filters</div></div>
+        <div class="down" style="--c:var(--green)">▼</div>
+        <div class="card" style="--c:var(--green)"><div class="t">Hybrid Search</div><div class="s">dense + BM25 · top-20 per leg</div></div>
+        <div class="down" style="--c:var(--green)">▼</div>
+        <div class="card" style="--c:var(--green)"><div class="t">RRF Fusion</div><div class="s">Qdrant server-side · reciprocal rank</div></div>
+        <div class="down" style="--c:var(--green)">▼</div>
+        <div class="card" style="--c:var(--green)"><div class="t">Rerank / Filter</div><div class="s">bge-reranker-v2-m3 · top-8 chunks</div></div>
+        <div class="down" style="--c:var(--green)">▼</div>
+        <div class="card" style="--c:var(--purple)"><div class="t">Groq LLM</div><div class="s">llama-3.3-70b · grounded · streaming</div></div>
+        <div class="down" style="--c:var(--green)">▼</div>
+        <div class="card" style="--c:var(--green)"><div class="t">Cited Answer</div><div class="s">with [n] citations · or 'not found'</div></div>
+      </div>
+
+    </div>
+    <div class="flowlabel" style="margin-top:12px">SOURCES ──load──▸ INGEST ──upsert──▸ STORAGE ──retrieve──▸ QUERY ──answer──▸ UI</div>
+  </div>
+
+  <!-- ============ UI BAND ============ -->
+  <div class="band">
+    <div class="band-h">UI LAYER — <b>FastAPI</b> /ask · <b>Next.js 14</b> on Vercel</div>
+    <div class="band-grid">
+      <div class="card"><div class="t">Chat Interface</div><div class="s">app/page.tsx</div></div>
+      <div class="card"><div class="t">Source Filter</div><div class="s">by type / module</div></div>
+      <div class="card"><div class="t">Citation Cards</div><div class="s">inline [n] references</div></div>
+      <div class="card"><div class="t">API Routes</div><div class="s">/ask · /health</div></div>
+      <div class="card"><div class="t">Streamlit App</div><div class="s">frontend/app.py</div></div>
+      <div class="card"><div class="t">Vercel Deploy</div><div class="s">edge + node runtime</div></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span style="color:var(--cyan)"><i></i>Ingestion</span>
+    <span style="color:var(--green)"><i></i>Storage / Query</span>
+    <span style="color:var(--amber)"><i></i>BM25 sparse</span>
+    <span style="color:var(--purple)"><i></i>LLM / payload</span>
+    <span style="color:var(--slate)"><i></i>Phase-2 / state</span>
+    <span style="color:var(--muted)">· Docker: Qdrant · TEI ×2 (BGE-M3 + reranker) · nginx</span>
+  </div>
+</div>

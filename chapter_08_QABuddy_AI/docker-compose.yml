@@ -1,0 +1,68 @@
+# QABuddyAI — full stack for a single DigitalOcean droplet (8 GB RAM recommended).
+# First run:
+#   cp .env.example .env   # fill in GROQ_API_KEY etc.
+#   docker compose up -d --build
+#   docker compose exec backend python ingest/run_full_ingest.py --source all
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.18.0
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  tei-embed:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+    command: --model-id BAAI/bge-m3 --max-client-batch-size 64
+    volumes:
+      - tei_embed_cache:/data
+    restart: unless-stopped
+
+  tei-rerank:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+    command: --model-id BAAI/bge-reranker-v2-m3
+    volumes:
+      - tei_rerank_cache:/data
+    restart: unless-stopped
+
+  backend:
+    build: .
+    env_file: .env
+    environment:
+      # In-cluster addresses override whatever local-dev values are in .env
+      QDRANT_URL: http://qdrant:6333
+      TEI_EMBED_URL: http://tei-embed:80
+      TEI_RERANK_URL: http://tei-rerank:80
+    volumes:
+      - ./QABuddyAI_Data_Sources:/app/QABuddyAI_Data_Sources
+      - ./ingest/.state:/app/ingest/.state
+      - ./config:/app/config
+    depends_on:
+      - qdrant
+      - tei-embed
+      - tei-rerank
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      # For TLS, add "443:443" and mount certbot certs (see README).
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+volumes:
+  qdrant_storage:
+  tei_embed_cache:
+  tei_rerank_cache:

@@ -1,0 +1,30 @@
+{"question": "How do I detect flaky tests in Selenium?", "answer": "Analyze LoginTest.java and Jenkins logs for intermittent failures."}
+{"question": "Which Playwright test covers the checkout flow?", "answer": "Checkout.spec.ts in Playwright repo."}
+{"question": "What is the RCA for JIRA-1234 bug?", "answer": "Root cause documented in JIRA ticket metadata."}
+{"question": "How many test cases exist for user registration?", "answer": "Check testdata.csv rows tagged with registration."}
+{"question": "What is the expected result for TC-5678?", "answer": "Refer to testdata.csv entry for TC-5678."}
+{"question": "Which Selenium class handles login functionality?", "answer": "LoginPage.java in Selenium repo."}
+{"question": "What are the open bugs related to payment gateway?", "answer": "Filter JIRA tickets with 'Payment' tag."}
+{"question": "What is the coverage percentage for GHCP module?", "answer": "30–40% without RAG, 70–80% with RAG + JIRA."}
+{"question": "Which test cases are missing for password reset?", "answer": "Compare PRD requirements vs testdata.csv."}
+{"question": "What Jenkins build failed last night?", "answer": "Check Jenkins logs for build ID."}
+{"question": "Which Playwright script validates search functionality?", "answer": "Search.spec.ts in Playwright repo."}
+{"question": "What is the RTM mapping for login feature?", "answer": "Refer to PRD and test cases for login."}
+{"question": "Which Selenium tests are flaky in CI pipeline?", "answer": "Analyze Jenkins logs for intermittent failures."}
+{"question": "What is the bug triage summary for sprint 12?", "answer": "Refer to JIRA tickets tagged Sprint 12."}
+{"question": "Which design document explains checkout flow?", "answer": "Refer to Figma wireframe in figma_designs folder."}
+{"question": "Which Playwright test validates password reset?", "answer": "PasswordReset.spec.ts in Playwright repo."}
+{"question": "What is the RCA for login failures?", "answer": "Check JIRA tickets related to login bugs."}
+{"question": "Which Selenium test validates search results?", "answer": "SearchTest.java in Selenium repo."}
+{"question": "What is the expected output for TC-7890?", "answer": "Refer to testdata.csv entry for TC-7890."}
+{"question": "Which Jenkins job runs nightly regression?", "answer": "Regression job logs in Jenkins folder."}
+{"question": "Which Playwright script validates cart functionality?", "answer": "Cart.spec.ts in Playwright repo."}
+{"question": "What is the RTM mapping for checkout feature?", "answer": "Refer to PRD and test cases for checkout."}
+{"question": "Which Selenium class handles payment gateway?", "answer": "PaymentPage.java in Selenium repo."}
+{"question": "What are the bugs triaged in sprint 15?", "answer": "Refer to JIRA tickets tagged Sprint 15."}
+{"question": "Which test cases validate login security?", "answer": "Check testdata.csv entries for login security."}
+{"question": "What Jenkins build failed during deployment?", "answer": "Deployment job logs in Jenkins folder."}
+{"question": "Which Playwright script validates profile update?", "answer": "ProfileUpdate.spec.ts in Playwright repo."}
+{"question": "What is the RCA for flaky checkout tests?", "answer": "Analyze Jenkins logs and JIRA tickets."}
+{"question": "Which Selenium test validates logout functionality?", "answer": "LogoutTest.java in Selenium repo."}
+{"question": "What is the bug triage summary for sprint 20?", "answer": "Refer to JIRA tickets tagged Sprint 20."}
