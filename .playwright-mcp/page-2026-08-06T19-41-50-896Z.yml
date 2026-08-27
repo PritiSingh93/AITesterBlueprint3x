@@ -1,0 +1,55 @@
+- generic [ref=e1]:
+  - main "Application main content" [ref=e3]:
+    - generic [ref=e7]:
+      - generic [ref=e10]:
+        - img "Wingify" [ref=e12]
+        - list [ref=e15]:
+          - listitem [ref=e16]:
+            - textbox "Email address" [active] [ref=e18]:
+              - /placeholder: Enter email ID
+          - listitem [ref=e19]:
+            - generic [ref=e20]:
+              - textbox "Password" [ref=e21]:
+                - /placeholder: Enter password
+              - button "Toggle password visibility" [ref=e22] [cursor=pointer]
+          - listitem [ref=e25]:
+            - button "Forgot Password?" [ref=e26] [cursor=pointer]
+          - listitem [ref=e27]:
+            - generic [ref=e28]: Remember me
+          - listitem [ref=e34]:
+            - button "Sign in" [ref=e35] [cursor=pointer]
+          - listitem [ref=e37]:
+            - heading "Or" [level=6] [ref=e39]
+          - listitem [ref=e41]:
+            - button "Sign in with Google" [ref=e43] [cursor=pointer]
+          - listitem [ref=e49]:
+            - button "Sign in using SSO" [ref=e50] [cursor=pointer]
+          - listitem [ref=e54]:
+            - button "Sign in with Passkey" [ref=e55] [cursor=pointer]
+          - listitem [ref=e59]:
+            - generic [ref=e61]: New to Wingify?
+          - listitem [ref=e63]:
+            - link "Start a FREE TRIAL" [ref=e64] [cursor=pointer]:
+              - /url: https://vwo.com/free-trial/?utm_medium=website&utm_source=login-page&utm_campaign=mof_eg_loginpage
+          - listitem [ref=e66]:
+            - text: By continuing, you agree to Wingify's
+            - link "Privacy policy" [ref=e67] [cursor=pointer]:
+              - /url: https://wingify.com/privacy-policy/?utm_medium=app&utm_source=login-page&utm_campaign=legal_privacy_login
+            - text: "&"
+            - link "Terms" [ref=e68] [cursor=pointer]:
+              - /url: https://wingify.com/terms/?utm_medium=website&utm_source=login-page&utm_campaign=legal_terms_login
+            - text: .
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - img "Wingify abtasty logo" [ref=e75]
+          - img "Wingify abtasty logo" [ref=e78]
+        - heading "Welcome to Wingify!" [level=1] [ref=e79]
+        - heading "app.vwo.com has transitioned to app.wingify.com" [level=2] [ref=e80]
+        - heading "Your plans, features, and data remain unchanged." [level=2] [ref=e81]
+        - link "Learn More" [ref=e82] [cursor=pointer]:
+          - /url: https://vwo.com/product-updates/vwo-wingify-aligning-our-domain/
+  - img [ref=e86]:
+    - generic: "'"
+  - generic:
+    - generic:
+      - iframe

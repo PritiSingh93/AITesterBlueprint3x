@@ -9,7 +9,7 @@ team of my company.
 A chatbot where a QA engineer asks one question and gets a **cited answer**
 grounded in our Selenium framework, Playwright framework, VWO test-case
 repository (5,000 TCs), PRDs, and JIRA bug history.
-ggo 
+
 ## 3. USE CASES (must support)
 - Onboarding help for new QA engineers
 - Central QA knowledge base ("KB brain") that understands our code repos

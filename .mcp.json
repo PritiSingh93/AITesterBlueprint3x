@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
+    },
+    "vwo-testcases": {
+      "command": "C:\\Users\\LENOVO\\AppData\\Local\\com.LangflowDesktop\\uv\\uv.exe",
+      "args": [
+        "--directory",
+        "C:\\Users\\LENOVO\\Documents\\AITesterBlueprint3x\\chapter_10_MCP_Creation_VIBE",
+        "run",
+        "python",
+        "server.py"
+      ]
+    }
+  }
+}
