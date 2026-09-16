@@ -35,6 +35,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.venv311/
 
 # RAG Explorer (chapter_07)
 chapter_07_RAG/Basic_RAG/backend/chroma_db/
