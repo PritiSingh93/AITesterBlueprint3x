@@ -3,7 +3,7 @@
 A practical, project-driven curriculum for QA engineers learning to use LLMs as a real testing tool — not a toy.
 Each chapter pairs concept material with a hands-on project, a prompt template, and runnable code where applicable.
 
-- **Author:** Priti Singh — Swnior Test Engineer SDET
+- **Author:** Priti Singh — Senior Test Engineer SDET
 
 ---
 
