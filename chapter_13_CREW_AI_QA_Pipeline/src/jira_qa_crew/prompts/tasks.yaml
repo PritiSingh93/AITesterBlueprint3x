@@ -1,0 +1,153 @@
+# Task definitions. Placeholders use $name (string.Template).
+
+analysis:
+  description: |
+    Analyse Jira ticket $ticket_key.
+
+    $injection_guard
+
+    STEP 1 - Fetch the ticket.
+    Call the fetch_jira_issue tool with issue_key="$ticket_key". Analyse only what
+    it returns. Do not request any other ticket.
+
+    STEP 2 - Extract, with evidence.
+    Produce:
+      - functional_requirements: what the system must do. Ids REQ-001, REQ-002, ...
+      - non_functional_requirements: performance, security, accessibility,
+        compatibility. Continue the same REQ numbering.
+      - acceptance_criteria: ids AC-001, AC-002, ... Each lists the requirement_ids
+        it belongs to.
+      - business_rules, dependencies, constraints, risks, assumptions,
+        missing_information, open_questions.
+
+    Rules that matter more than completeness:
+      - Every requirement and acceptance criterion carries an evidence quote taken
+        from the ticket text, and a classification of EXPLICIT, INFERRED or
+        ASSUMPTION_REQUIRING_CONFIRMATION.
+      - Do not invent acceptance criteria. If the ticket states none, derive them
+        from the described behaviour and mark them INFERRED.
+      - Anything a tester needs but the ticket does not give - URLs, selectors,
+        credentials, test data, exact error copy, volumes - goes in
+        missing_information. Never fabricate it.
+      - For a bug ticket, the expected behaviour is a requirement and the reported
+        defect is evidence for it.
+      - Ids are unique. Never reuse a number.
+  expected_output: |
+    A JSON object matching the AnalysisPayload schema, with every requirement and
+    acceptance criterion carrying an id, text, classification and evidence quote.
+
+test_plan:
+  description: |
+    Write the test plan for $ticket_key using the analysis from the previous task.
+
+    $injection_guard
+
+    Produce exactly these 12 sections, numbered 1 to 12 in this order:
+      1. Executive Summary
+      2. Test Objectives
+      3. In Scope
+      4. Out of Scope
+      5. Requirements and Acceptance-Criteria Coverage
+      6. Test Strategy, Levels, and Test Types
+      7. Test Environment, Tools, and Browser Coverage
+      8. Test Data Requirements
+      9. High-Level Test Scenarios
+      10. Entry and Exit Criteria
+      11. Risks, Dependencies, Assumptions, and Mitigations
+      12. Execution, Defect Management, Reporting, and Deliverables
+
+    Also produce a scenarios list. Each scenario needs an id (SC-001, SC-002, ...),
+    a title, and the requirement_ids and acceptance_criteria_ids it exercises.
+
+    Requirements:
+      - Use only REQ-* and AC-* ids that appear in the analysis. Do not invent ids.
+      - Every scenario maps to at least one REQ-* or AC-*.
+      - Section content is specific to this ticket. Text that would read the same
+        for any other ticket is a defect in your output.
+      - Section 5 states plainly which requirements and criteria are covered and
+        which are not.
+      - Section 11 uses the risks and missing information the analyst recorded.
+      - Automation tooling is Playwright with TypeScript.
+      - Keep the whole plan under 1200 words. Completing all 12 sections matters
+        more than depth in any one of them.
+  expected_output: |
+    A JSON object matching the TestPlan schema: 12 sections (number, title,
+    content) plus a scenarios list with requirement and acceptance-criteria ids.
+
+test_cases:
+  description: |
+    Design the test cases for $ticket_key from the requirements analysis.
+
+    $injection_guard
+
+    Write between 6 and 10 test cases. Choose the categories that genuinely apply
+    to this ticket from: happy path, negative, boundary, validation, error
+    handling, state transition, permissions, data integrity, API or contract,
+    accessibility, cross-browser, regression impact, recovery.
+
+    Do not force a category that this ticket does not support. A fabricated
+    performance case on a UI copy change wastes a reviewer's time.
+
+    Each test case must include:
+      - id, formatted $ticket_key-TC-001 and counting up
+      - requirement_ids and acceptance_criteria_ids drawn from the analysis
+      - title, objective
+      - priority: P0, P1, P2 or P3
+      - test_type
+      - preconditions, test_data
+      - steps: numbered, each with an action and its expected observation
+      - expected_result
+      - automation_candidate: Yes, No or Partial, with automation_rationale
+      - tags
+      - assumptions_or_blockers: anything you had to assume, and any test data you
+        invented because the ticket gave none
+
+    Coverage rule: every EXPLICIT acceptance criterion gets at least one positive
+    case, and a negative or boundary case wherever one is logically possible.
+
+    Keep steps tight. A complete suite of clear cases beats a truncated verbose one.
+  expected_output: |
+    A JSON object matching the TestCaseSuite schema, with 8 to 15 fully populated,
+    traceable test cases.
+
+playwright:
+  description: |
+    Generate Playwright TypeScript automation for $ticket_key.
+
+    $injection_guard
+
+    Automate only the test cases marked Yes or Partial, and at most 5 of them.
+    Skip the rest and say why in setup_notes. One complete, compilable spec is
+    worth more than several truncated ones.
+
+    Produce files as a list of path/content pairs, for example
+    tests/$ticket_slug.spec.ts, and a page object or fixture file when it genuinely
+    improves maintainability.
+
+    The code must:
+      - import { test, expect } from '@playwright/test';
+      - group with test.describe and narrate with test.step
+      - use getByRole, getByLabel, getByPlaceholder or getByTestId
+      - never use page.waitForTimeout
+      - never hard-code secrets, credentials, tokens or absolute environment URLs;
+        use baseURL and process.env
+      - be independent and parallel-safe, with no ordering assumptions
+      - carry a comment above each test naming its Jira key, test case id, and the
+        REQ-* and AC-* ids it covers
+      - assert real outcomes, including negative assertions where a defect produced
+        a wrong or empty value
+
+    Honesty rule, which outranks completeness:
+    If the ticket does not give you real selectors, routes, credentials or test
+    data, do NOT invent them. Emit a compilable scaffold using clearly marked
+    placeholder constants, set readiness to NEEDS_CONFIGURATION, and list exactly
+    what a human must supply in missing_information. Only use READY when the
+    ticket genuinely supplied everything needed to run.
+
+    Also produce mappings: for each automated test, its test_case_id, test_name,
+    requirement_ids and acceptance_criteria_ids.
+
+    Prefer one complete, compilable spec file over several half-finished ones.
+  expected_output: |
+    A JSON object matching the PlaywrightBundle schema: files (path and content),
+    mappings, readiness, setup_notes, missing_information and assumptions.

@@ -8,3 +8,8 @@ _ = 12
 print(_)
 _ = _ + 1
 print(_)
+
+name = "Priti"
+# name -> Indentifire
+# = -> operator
+# "Priti" -> Literal or Variable Value

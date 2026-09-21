@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jira-qa-crew"
+version = "1.0.0"
+description = "Generate test plans, test cases, traceability and Playwright automation from Jira tickets using CrewAI."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+dependencies = [
+    "crewai>=1.15,<2",
+    "crewai-tools>=1.15,<2",
+    "mcp>=1.2.0",
+    "streamlit>=1.40",
+    "pydantic>=2.11,<3",
+    "requests>=2.31,<3",
+    "PyYAML>=6.0,<7",
+    "pandas>=2.0,<3",
+    "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+jira_qa_crew = ["prompts/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+# Domain models such as TestPlan and TestCaseSuite would otherwise be collected
+# as test classes. This suite uses plain functions only.
+python_classes = ["Check*"]
+markers = [
+    "integration: needs real Jira or LLM credentials; deselected by default",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+ignore = [
+    "E501",    # long lines are handled by the formatter, not enforced here
+    "B008",    # FastAPI/pydantic style default calls are intentional
+    "SIM105",  # contextlib.suppress is not always clearer
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]

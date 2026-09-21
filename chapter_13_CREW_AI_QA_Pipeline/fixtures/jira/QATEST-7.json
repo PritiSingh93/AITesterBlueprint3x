@@ -1,0 +1,20 @@
+{
+  "key": "QATEST-7",
+  "summary": "Cart total shows $0.00 after applying a discount code to 3 or more items",
+  "description": "Steps to Reproduce:\n1. Add 3 or more items to the cart so the subtotal is over $50.\n2. Apply discount code SAVE20 (20% off).\n3. Observe the cart total.\n\nActual Result: The cart total displays $0.00.\nExpected Result: The cart total displays the subtotal minus 20%.\n\nAdditional Information:\n- Reproduces only when the cart holds 3 or more items.\n- Works correctly with 1 or 2 items.\n- Started after the v2.4.1 deployment on Friday.\n- No errors appear in the browser console.\n- The pricing API response contains the correct discounted amount.\n\nAcceptance Criteria:\n- Applying SAVE20 to a cart of any size shows subtotal minus 20%.\n- The displayed total always matches the total returned by the pricing API.\n- Removing the discount code restores the original subtotal.",
+  "issue_type": "Bug",
+  "status": "Open",
+  "priority": "High",
+  "labels": ["checkout", "pricing", "regression"],
+  "components": ["Cart", "Pricing"],
+  "parent": null,
+  "subtasks": [],
+  "linked_issues": ["QATEST-3"],
+  "acceptance_criteria_raw": "",
+  "comments": [
+    "jane.tester: Confirmed on Chrome 120 and Firefox 121, Windows 11.",
+    "dev.lead: The pricing service returns the right number, so this looks like a rendering or parsing problem."
+  ],
+  "url": "https://example.atlassian.net/browse/QATEST-7",
+  "source": "FIXTURE"
+}

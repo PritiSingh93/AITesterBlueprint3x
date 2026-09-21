@@ -1,0 +1,14 @@
+services:
+  jira-qa-crew:
+    build: .
+    image: jira-qa-crew:1.0.0
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      OUTPUT_DIR: /app/outputs
+    volumes:
+      # Persist generated artifacts outside the container.
+      - ./outputs:/app/outputs
+    restart: unless-stopped
