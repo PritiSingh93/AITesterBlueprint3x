@@ -1,23 +1,24 @@
-# task_plan.md
+# SOP — Formal Test Plan Template (Layer 1)
 
-Created by GitHub Copilot on 2026-06-12
+Native QA template (NOT the external `test-plan-create-skill`). The generator must fill these 13 sections.
 
-Phase 0 - Initialization
-- Create project memory files: `task_plan.md`, `findings.md`, `progress.md`, `LLM.md` (done)
-- Halt execution until discovery questions are answered
+| # | Section | Content |
+|---|---------|---------|
+| 1 | Objective | What this testing effort proves, tied to the issue. |
+| 2 | Scope | In Scope / Out of Scope bullet lists. |
+| 3 | Inclusions | Specific features/flows/areas covered. |
+| 4 | Test Environments | OS / browser / device / env (e.g. staging) targets. |
+| 5 | Defect Reporting | Where + how defects are logged (Jira project, severity scale). |
+| 6 | Test Strategy | Test types: functional, regression, API, UI, edge, negative. |
+| 7 | Schedule | Phase / Owner / Dates table (`TBD` where unknown). |
+| 8 | Deliverables | Artifacts produced (test cases, report, defect log). |
+| 9 | Entry Criteria | Preconditions to start testing. |
+| 10 | Exit Criteria | Conditions to stop / sign off. |
+| 11 | Tools | Test + automation + reporting tooling. |
+| 12 | Risks & Mitigations | Risk / Mitigation table. |
+| 13 | Approvals | Role / Name sign-off table. |
 
-Phase 1 - Discovery (completed)
-- North Star: Produce a Formal Test Plan Markdown file per JIRA issue (no individual test cases).
-- Integrations: Atlassian JIRA (read-only) and optional GROQ/OpenGPT (GROQ is optional and gated by `useGroq`).
-- Source of Truth: JIRA issue fields (`summary`, `description`, `acceptance criteria`, labels, custom fields).
-- Delivery Payload: Local Markdown file saved under `chapter_03_BLAST_FW/` and returned to client.
-- Behavioral Rules: Reuse VWO template; do not edit JIRA; keep credentials in `.env` by default.
-
-Phase 2 - Link
-- Implement `server/jira.js` to verify read-only connection to JIRA using `.env` (done).
-- Add `/api/generate` and `/api/save` endpoints (done).
-
-Phase 3 - Architect
-- Implement deterministic generator `buildTestPlanMarkdown` for stable outputs (done).
-
-Next steps: User validation and iterative refinements; optionally enable auto-commit or CI triggers for saved artifacts.
+## Rules
+- Derive everything from the Jira issue. Unknown specifics → `TBD`, never invented.
+- Professional, concise, formal QA tone.
+- Output is JSON (see `gemini.md` §3d) → rendered deterministically to Markdown.
