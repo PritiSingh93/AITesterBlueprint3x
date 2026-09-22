@@ -294,6 +294,7 @@ _RATE_LIMITED = ("rate limit", "429", "too many requests")
 # edge block in front of the provider, or an account restriction — goes unnamed.
 _AUTH_FAILED = ("401", "invalid api key", "invalid_api_key", "unauthorized")
 _FORBIDDEN = ("403", "error code: 1010", "cloudflare", "forbidden")
+_TOOL_CALL_REJECTED = ("tool_use_failed", "tool call validation failed")
 
 
 def explain_crew_failure(exc: Exception) -> str:
@@ -374,6 +375,13 @@ def explain_crew_failure(exc: Exception) -> str:
             "LLM_BASE_URL in .env."
         )
 
+    if any(token in lowered for token in _TOOL_CALL_REJECTED):
+        return (
+            "The model wrapped its answer in a tool call the provider would not "
+            "accept, so the provider discarded the answer. The text it generated "
+            "is under Run Details. Re-running the ticket usually clears it."
+        )
+
     if any(token in lowered for token in _FORBIDDEN):
         return (
             "The model provider refused the request (HTTP 403). This is usually "
@@ -383,7 +391,13 @@ def explain_crew_failure(exc: Exception) -> str:
             "provider's own message under Run Details."
         )
 
-    return f"Crew execution failed: {raw}"
+    # An unrecognised provider error can be thousands of characters of echoed
+    # request JSON. The banner has to stay readable, so it is trimmed here; the
+    # whole thing is kept verbatim in TicketResult.error_detail.
+    summary = " ".join(raw.split())
+    if len(summary) > 300:
+        summary = summary[:300].rstrip() + "… (full text under Run Details)"
+    return f"Crew execution failed: {summary}"
 
 
 def _humanize_wait(raw: str) -> str:

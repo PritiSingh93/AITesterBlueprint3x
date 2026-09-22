@@ -6,8 +6,14 @@ from collections.abc import Callable
 
 from crewai import Agent, Task
 
-from ..models import AnalysisPayload, PlaywrightBundle, TestCaseSuite, TestPlan
-from ..security import INJECTION_GUARD
+from ..models import (
+    AnalysisPayload,
+    JiraIssue,
+    PlaywrightBundle,
+    TestCaseSuite,
+    TestPlan,
+)
+from ..security import INJECTION_GUARD, fence_untrusted
 from .prompts import task_prompt
 
 
@@ -18,18 +24,27 @@ def _slug(ticket_key: str) -> str:
 def build_tasks(
     *,
     agents: dict[str, Agent],
-    ticket_key: str,
+    issue: JiraIssue,
     on_task_complete: Callable[[str], None] | None = None,
 ) -> list[Task]:
     """Create the four sequential tasks.
 
     Each stage's output is passed to later stages as explicit ``context``, and
     each returns a validated Pydantic object rather than free-form markdown.
+
+    The ticket is embedded in the analysis prompt rather than fetched by the
+    agent. The gateway has already read it by the time a crew is built, so a
+    tool call would only hand back text the app is holding — while requiring
+    the request to declare tools, which is what let the model answer with a
+    tool call the provider then rejected. No tools also means no tool for
+    injected ticket text to aim at.
     """
+    ticket_key = issue.key
     values = {
         "ticket_key": ticket_key,
         "ticket_slug": _slug(ticket_key),
         "injection_guard": INJECTION_GUARD,
+        "ticket_block": fence_untrusted(issue.as_prompt_block()),
     }
 
     def callback_for(stage: str) -> Callable[[object], None] | None:

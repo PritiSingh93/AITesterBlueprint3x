@@ -103,6 +103,32 @@ def test_401_blames_the_key() -> None:
     assert "LLM_API_KEY" in message
 
 
+def test_a_rejected_tool_call_is_explained_not_dumped() -> None:
+    """The provider echoes the whole generation back; a banner cannot hold it."""
+    payload = '{"name": "JSON", "arguments": {"functional_requirements": [' + (
+        '{"id": "REQ-001", "text": "x"},' * 60
+    ) + "]}}"
+    exc = RuntimeError(
+        "Error code: 400 - {'error': {'message': \"Tool call validation failed: "
+        "attempted to call tool 'JSON' which was not in request.tools\", "
+        f"'code': 'tool_use_failed', 'failed_generation': '{payload}'}}}}"
+    )
+
+    message = explain_crew_failure(exc)
+
+    assert "tool call the provider would not accept" in message
+    assert "Run Details" in message
+    assert len(message) < 400
+    assert "REQ-001" not in message
+
+
+def test_an_unrecognised_error_is_trimmed_for_the_banner() -> None:
+    message = explain_crew_failure(RuntimeError("blah " * 400))
+
+    assert len(message) < 400
+    assert "full text under Run Details" in message
+
+
 def test_403_does_not_blame_the_key() -> None:
     """A WAF block in front of the provider is not a credentials problem.
 

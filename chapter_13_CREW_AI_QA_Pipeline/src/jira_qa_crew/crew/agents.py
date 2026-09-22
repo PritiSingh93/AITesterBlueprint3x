@@ -6,7 +6,6 @@ from crewai import LLM, Agent
 
 from ..config import LLMConfig
 from ..exceptions import ConfigurationError
-from ..tools.jira_tool import FetchJiraIssueTool
 from .prompts import agent_prompt
 
 # Output budget per stage. Later stages carry more context in their prompt, so
@@ -66,14 +65,14 @@ def build_agents(
     *,
     llm_config: LLMConfig,
     ticket_key: str,
-    jira_tool: FetchJiraIssueTool,
     verbose: bool = False,
 ) -> dict[str, Agent]:
     """Create the four pipeline agents.
 
     Each agent gets its own LLM so its output budget can be sized for its own
-    prompt. Only the analyst receives the Jira tool; downstream agents work
-    from task context, so no later stage can reach Jira.
+    prompt. No agent is given a tool: the ticket is fetched deterministically
+    before the crew runs and embedded in the analysis prompt, so nothing here
+    needs to reach Jira. See :func:`..crew.tasks.build_tasks`.
     """
     values = {"ticket_key": ticket_key}
 
@@ -82,7 +81,6 @@ def build_agents(
 
     analyst = Agent(
         **agent_prompt("jira_analyst", **values),
-        tools=[jira_tool],
         llm=llm_for("analyst"),
         verbose=verbose,
         allow_delegation=False,

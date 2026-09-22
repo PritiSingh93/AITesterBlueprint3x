@@ -51,18 +51,20 @@ def build_ticket_crew(
     """Assemble an isolated crew for a single ticket."""
     _silence_crewai_prompts()
 
+    # Kept primed with this ticket so the allowlist and read-only rules stay
+    # exercised and available, but deliberately not handed to any agent: see
+    # build_tasks for why the crew runs without tools.
     jira_tool = FetchJiraIssueTool(gateway=gateway)
     jira_tool.prime(issue)
 
     agents = build_agents(
         llm_config=config.llm,
         ticket_key=issue.key,
-        jira_tool=jira_tool,
         verbose=verbose,
     )
     tasks = build_tasks(
         agents=agents,
-        ticket_key=issue.key,
+        issue=issue,
         on_task_complete=on_task_complete,
     )
 
