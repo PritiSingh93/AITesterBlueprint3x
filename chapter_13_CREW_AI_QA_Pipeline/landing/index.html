@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jira QA Crew</title>
+<meta name="description" content="Turns a Jira ticket into a test plan, test cases, a traceability matrix and Playwright automation.">
+<style>
+  :root{
+    --blue:#1B4F9C; --blue-dark:#12356B; --blue-soft:#EAF1FB;
+    --bg:#FFFFFF; --card:#FFFFFF; --border:#D3DEEE;
+    --text:#1B2430; --muted:#5C6879;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E1622; --card:#16202F; --border:#25344A;
+      --text:#E8EEF7; --muted:#9BABC1; --blue-soft:#182740;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E1622; --card:#16202F; --border:#25344A;
+    --text:#E8EEF7; --muted:#9BABC1; --blue-soft:#182740;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{max-width:860px; margin:0 auto; padding:0 16px 72px}
+  header{
+    background:linear-gradient(135deg,var(--blue-dark),var(--blue));
+    color:#fff; padding:56px 16px 48px; margin-bottom:40px;
+  }
+  header .inner{max-width:860px; margin:0 auto}
+  h1{margin:0 0 10px; font-size:2.1rem; line-height:1.2}
+  .tag{
+    display:inline-block; background:rgba(255,255,255,.16); color:#fff;
+    padding:.2rem .6rem; border-radius:999px; font-size:.74rem;
+    font-weight:700; letter-spacing:.04em; margin-bottom:14px;
+  }
+  header p{margin:0; font-size:1.05rem; opacity:.93; max-width:60ch}
+  .cta{display:flex; flex-wrap:wrap; gap:12px; margin-top:26px}
+  .btn{
+    display:inline-block; padding:.72rem 1.3rem; border-radius:8px;
+    font-weight:650; text-decoration:none; font-size:.97rem;
+  }
+  .btn-main{background:#fff; color:var(--blue-dark)}
+  .btn-ghost{border:1.5px solid rgba(255,255,255,.55); color:#fff}
+  .btn:hover{opacity:.9}
+  h2{font-size:1.25rem; margin:38px 0 14px}
+  .grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .card{
+    background:var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:16px 18px;
+  }
+  .card h3{margin:0 0 6px; font-size:.95rem; color:var(--blue)}
+  .card p{margin:0; font-size:.9rem; color:var(--muted)}
+  .step{display:flex; gap:14px; align-items:flex-start; margin-bottom:14px}
+  .num{
+    flex:0 0 28px; height:28px; border-radius:50%; background:var(--blue-soft);
+    color:var(--blue); font-weight:700; font-size:.85rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .step div strong{display:block; font-size:.95rem}
+  .step div span{font-size:.88rem; color:var(--muted)}
+  ul.notes{padding-left:20px; margin:0}
+  ul.notes li{margin-bottom:9px; font-size:.94rem}
+  .note{
+    background:var(--blue-soft); border-left:3px solid var(--blue);
+    border-radius:0 8px 8px 0; padding:12px 16px; font-size:.9rem;
+    color:var(--muted); margin-top:28px;
+  }
+  footer{
+    border-top:1px solid var(--border); margin-top:44px; padding-top:18px;
+    font-size:.85rem; color:var(--muted);
+  }
+  footer a{color:var(--blue)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <span class="tag">CREWAI · STREAMLIT · PLAYWRIGHT</span>
+    <h1>Jira QA Crew</h1>
+    <p>Reads a Jira ticket and produces a test plan, test cases, a traceability
+       matrix and Playwright automation — with every requirement traced back to
+       the words in the ticket.</p>
+    <div class="cta">
+      <!-- ── EDIT THIS ONE LINE: paste your Streamlit app URL ── -->
+      <a class="btn btn-main" href="https://YOUR-APP.streamlit.app">Launch live demo →</a>
+      <a class="btn btn-ghost"
+         href="https://github.com/PritiSingh93/AITesterBlueprint3x/tree/main/chapter_13_CREW_AI_QA_Pipeline">
+         View source</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2>How it works</h2>
+  <div class="step"><div class="num">1</div><div>
+    <strong>Jira Analyst</strong>
+    <span>Extracts requirements and acceptance criteria, each quoting the ticket
+    line it came from and labelled EXPLICIT, INFERRED or ASSUMPTION.</span>
+  </div></div>
+  <div class="step"><div class="num">2</div><div>
+    <strong>Test Plan Writer</strong>
+    <span>Produces a twelve-section plan: scope, strategy, environments, entry
+    and exit criteria, risks.</span>
+  </div></div>
+  <div class="step"><div class="num">3</div><div>
+    <strong>Test Case Writer</strong>
+    <span>Writes cases with steps, data and expected results, each tracing to
+    the requirements it covers.</span>
+  </div></div>
+  <div class="step"><div class="num">4</div><div>
+    <strong>Playwright Coder</strong>
+    <span>Generates TypeScript specs, and states plainly when they need URLs or
+    selectors before they can run.</span>
+  </div></div>
+
+  <h2>What keeps it honest</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Jira facts are never generated</h3>
+      <p>The ticket is fetched by Python before any agent starts. No field
+      comes from a model.</p>
+    </div>
+    <div class="card">
+      <h3>Gaps are recorded, not filled</h3>
+      <p>Missing selectors, URLs or test data are listed as gaps rather than
+      invented.</p>
+    </div>
+    <div class="card">
+      <h3>Coverage is computed</h3>
+      <p>Traceability is calculated in Python from validated objects. A model
+      grading its own output is not evidence.</p>
+    </div>
+    <div class="card">
+      <h3>Readiness is stated</h3>
+      <p>Generated automation is labelled as a scaffold when it is one, instead
+      of being passed off as runnable.</p>
+    </div>
+    <div class="card">
+      <h3>The agents have no tools</h3>
+      <p>Ticket text asking to read another issue has nothing to act on — it is
+      unreachable, not merely refused.</p>
+    </div>
+    <div class="card">
+      <h3>Deterministic validation</h3>
+      <p>Python checks catch hard-coded environment URLs and credentials in
+      generated code.</p>
+    </div>
+  </div>
+
+  <h2>Engineering notes</h2>
+  <ul class="notes">
+    <li><strong>Per-request token ceiling.</strong> The provider meters
+      <code>prompt + max_tokens</code> against one limit, so each stage clamps
+      its output budget and inherits only the context it needs.</li>
+    <li><strong>Partial work is kept.</strong> When a later stage fails, the
+      stages that finished are preserved and downloadable rather than discarded
+      with the error.</li>
+    <li><strong>A metric that lied.</strong> The traceability matrix once
+      reported 100% coverage while mapping every case to every criterion. Fixing
+      the match immediately surfaced a real gap.</li>
+  </ul>
+
+  <div class="note">
+    The live demo runs in <strong>demo mode</strong>: tickets come from sample
+    files rather than a Jira site, and every artifact is labelled FIXTURE. The
+    four agents do the real work.
+  </div>
+
+  <footer>
+    Built by Priti Singh ·
+    <a href="https://github.com/PritiSingh93/AITesterBlueprint3x">GitHub</a>
+  </footer>
+</div>
+
+</body>
+</html>
