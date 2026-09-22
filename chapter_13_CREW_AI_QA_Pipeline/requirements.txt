@@ -1,7 +1,9 @@
 # Runtime dependencies for Streamlit Community Cloud and Docker.
 # Pinned to the versions this project was built and verified against.
 crewai==1.15.22
-crewai-tools==1.15.22
+# crewai-tools is deliberately absent. BaseTool comes from crewai.tools, which
+# ships inside crewai itself, and the agents run without tools at all. Pulling
+# the separate package in only lengthened the build.
 mcp>=1.2.0
 streamlit==1.64.0
 pydantic>=2.11,<3
