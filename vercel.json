@@ -2,6 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "echo no dependencies to install",
-  "buildCommand": "echo nothing to build - static site",
-  "outputDirectory": "chapter_13_CREW_AI_QA_Pipeline/landing"
+  "buildCommand": "mkdir -p dist && cp chapter_13_CREW_AI_QA_Pipeline/landing/index.html dist/index.html && ls -l dist",
+  "outputDirectory": "dist"
 }

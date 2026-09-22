@@ -48,3 +48,6 @@ chapter_07_RAG/RAG_TestCase_generator/backend/chroma_db/
 chapter_07_RAG/RAG_TestCase_generator/backend/.env
 chapter_07_RAG/RAG_TestCase_generator/frontend/.env
 chapter_07_RAG/RAG_TestCase_generator/frontend/dist/
+
+# Vercel build output for the chapter 13 landing page
+dist/
