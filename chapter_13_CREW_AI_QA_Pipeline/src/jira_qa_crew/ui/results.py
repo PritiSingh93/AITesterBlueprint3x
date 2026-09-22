@@ -465,8 +465,21 @@ def _render_traceability(result: TicketResult) -> None:
     )
 
 
+def _render_provider_error(result: TicketResult) -> None:
+    """The provider's own message, under the app's interpretation of it."""
+    if not result.error_detail:
+        return
+    with st.expander("What the provider actually said"):
+        st.caption(
+            "The message above is this app reading the error below. When the "
+            "two disagree, trust this one. Secrets are redacted."
+        )
+        st.code(result.error_detail, language="text")
+
+
 def _render_run_details(result: TicketResult) -> None:
     st.markdown(render_ticket_result_md(result))
+    _render_provider_error(result)
 
     if result.issue:
         with st.expander("Ticket as fetched (read-only)"):

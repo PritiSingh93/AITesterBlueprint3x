@@ -225,6 +225,43 @@ def test_crew_exception_fails_only_that_ticket(config, stub_crew) -> None:
     assert "exploded" in run.results[0].error
 
 
+def test_the_providers_own_words_survive_the_explanation(config, stub_crew) -> None:
+    """The friendly message is a guess; the raw error is the evidence.
+
+    A 403 from the network in front of the provider was being reported as
+    rejected credentials. Without the original text there was nothing in the
+    run to contradict it.
+    """
+    stub_crew["raises"] = RuntimeError(
+        "litellm.AuthenticationError: Error code: 403 - error code: 1010"
+    )
+
+    run = run_pipeline(["QATEST-7"], config=config, gateway=StubGateway())
+    result = run.results[0]
+
+    assert "403" in result.error
+    assert "error code: 1010" in result.error_detail
+
+
+def test_the_raw_error_is_redacted_before_it_is_kept(config, stub_crew) -> None:
+    """Provider errors echo request headers, so this sink must not leak a key."""
+    stub_crew["raises"] = RuntimeError(
+        "401 unauthorized: Authorization=Bearer "
+        "gsk_b1234567890abcdefghijABCDEFGHIJ1234567890abcdefgh"
+    )
+
+    run = run_pipeline(["QATEST-7"], config=config, gateway=StubGateway())
+    detail = run.results[0].error_detail
+
+    assert "gsk_" not in detail
+    assert "REDACTED" in detail
+
+
+def test_error_detail_is_empty_on_success(config, stub_crew) -> None:
+    run = run_pipeline(["QATEST-7"], config=config, gateway=StubGateway())
+    assert run.results[0].error_detail == ""
+
+
 def test_failed_ticket_marks_remaining_stages_failed(config, stub_crew) -> None:
     stub_crew["raises"] = RuntimeError("boom")
     run = run_pipeline(["QATEST-7"], config=config, gateway=StubGateway())

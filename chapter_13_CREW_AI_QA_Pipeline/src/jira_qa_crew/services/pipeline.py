@@ -149,6 +149,7 @@ def _process_ticket(
 
     ticket_crew = None
     crew_error = ""
+    crew_error_detail = ""
     outputs: list = []
     try:
         ticket_crew = build_ticket_crew(
@@ -169,6 +170,10 @@ def _process_ticket(
     except Exception as exc:
         logger.exception("Crew failed for %s", ticket_key)
         crew_error = explain_crew_failure(exc)
+        # The explanation is a guess at what the provider meant. Keep the
+        # provider's own words too: when the guess is wrong, this is the only
+        # thing that shows it, and a finished run leaves no other trace.
+        crew_error_detail = redact(exc)[:2000]
 
     # A later stage failing does not invalidate the stages that already
     # finished. Their output is real work the user paid for, so it is kept and
@@ -178,7 +183,12 @@ def _process_ticket(
         tracker.fail_remaining(crew_error)
 
     if not outputs:
-        return _fail(result, tracker, crew_error or "The crew produced no output.")
+        return _fail(
+            result,
+            tracker,
+            crew_error or "The crew produced no output.",
+            detail=crew_error_detail,
+        )
 
     # 3. Recover and validate whichever stages did produce output.
     issues: list[ValidationIssue] = []
@@ -234,6 +244,7 @@ def _process_ticket(
         kept = sum(x is not None for x in (analysis, plan, suite, bundle))
         result.outcome = TicketOutcome.PARTIAL
         result.error = crew_error or stage_error
+        result.error_detail = crew_error_detail
         logger.info("%s -> PARTIAL (%s/4 stages kept)", ticket_key, kept)
     else:
         tracker.finish(
@@ -277,7 +288,12 @@ _TRUNCATED = ("length limit was reached", "could not parse response content")
 # minute", but waiting fixes that one and resizing does not.
 _TOO_LARGE = ("request too large", "413")
 _RATE_LIMITED = ("rate limit", "429", "too many requests")
-_AUTH_FAILED = ("401", "invalid api key", "authentication", "unauthorized")
+# Only a 401 means the key itself was rejected. litellm raises
+# AuthenticationError for 403 as well, so matching "authentication" alone sends
+# people to check a key that is provably fine while the real cause — a WAF or
+# edge block in front of the provider, or an account restriction — goes unnamed.
+_AUTH_FAILED = ("401", "invalid api key", "invalid_api_key", "unauthorized")
+_FORBIDDEN = ("403", "error code: 1010", "cloudflare", "forbidden")
 
 
 def explain_crew_failure(exc: Exception) -> str:
@@ -354,8 +370,17 @@ def explain_crew_failure(exc: Exception) -> str:
 
     if any(token in lowered for token in _AUTH_FAILED):
         return (
-            "The model provider rejected the credentials. Check LLM_API_KEY and "
+            "The model provider rejected the API key. Check LLM_API_KEY and "
             "LLM_BASE_URL in .env."
+        )
+
+    if any(token in lowered for token in _FORBIDDEN):
+        return (
+            "The model provider refused the request (HTTP 403). This is usually "
+            "the network or WAF in front of the provider rather than your key, "
+            "so try the run again before changing .env. If it keeps happening, "
+            "check that the account still has access to the model and see the "
+            "provider's own message under Run Details."
         )
 
     return f"Crew execution failed: {raw}"
@@ -390,10 +415,15 @@ def _record_warnings(
 
 
 def _fail(
-    result: TicketResult, tracker: ProgressTracker, message: str
+    result: TicketResult,
+    tracker: ProgressTracker,
+    message: str,
+    *,
+    detail: str = "",
 ) -> TicketResult:
     tracker.fail_remaining(message)
     result.error = message
+    result.error_detail = detail
     result.outcome = TicketOutcome.FAILED
     result.stages = tracker.snapshot()
     result.finished_at = datetime.now(UTC)

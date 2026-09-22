@@ -115,6 +115,7 @@ def _ticket_manifest(result: TicketResult, file_names: list[str]) -> dict:
         },
         "validation_issues": [i.model_dump(mode="json") for i in result.validation_issues],
         "error": result.error,
+        "error_detail": result.error_detail,
         "files": file_names,
     }
 

@@ -95,6 +95,33 @@ def test_daily_quota_says_how_long_and_not_to_retry() -> None:
     assert "Retrying sooner will not help" in message
 
 
+def test_401_blames_the_key() -> None:
+    message = explain_crew_failure(
+        RuntimeError("litellm.AuthenticationError: Error code: 401 - invalid api key")
+    )
+    assert "rejected the API key" in message
+    assert "LLM_API_KEY" in message
+
+
+def test_403_does_not_blame_the_key() -> None:
+    """A WAF block in front of the provider is not a credentials problem.
+
+    litellm raises AuthenticationError for 403 too, so keying on the word
+    "authentication" sent people to rotate a key that was provably valid while
+    the real cause went unnamed.
+    """
+    message = explain_crew_failure(
+        RuntimeError(
+            "litellm.AuthenticationError: Error code: 403 - "
+            "<html>error code: 1010</html>"
+        )
+    )
+
+    assert "403" in message
+    assert "try the run again" in message
+    assert "rejected the API key" not in message
+
+
 def test_per_minute_limit_suggests_a_short_retry() -> None:
     exc = RuntimeError(
         "Error code: 429 - Rate limit reached on tokens per minute (TPM). "

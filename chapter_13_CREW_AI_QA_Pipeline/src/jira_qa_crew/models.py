@@ -431,6 +431,10 @@ class TicketResult(BaseModel):
     validation_issues: list[ValidationIssue] = Field(default_factory=list)
     stages: list[StageProgress] = Field(default_factory=list)
     error: str = ""
+    # The provider's own words, redacted. ``error`` is this app's reading of
+    # them, which can be wrong; keeping both means a misreading is visible
+    # instead of being the only account of what happened.
+    error_detail: str = ""
     started_at: datetime | None = None
     finished_at: datetime | None = None
     artifact_dir: str = ""
