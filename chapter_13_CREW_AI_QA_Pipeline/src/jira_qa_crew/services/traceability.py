@@ -44,11 +44,19 @@ def build_coverage(
     # no criterion of its own.
     for ac_id in ac_ids:
         parents = ac_to_reqs.get(ac_id) or []
+        # A case that names its criteria is taken at its word. Falling back to
+        # the parent requirement for those cases too would match every case
+        # against every criterion whenever criteria share a requirement — which
+        # is the normal shape of an analysis — and the matrix would say
+        # "everything covers everything" instead of tracing anything.
         matching = [
             tc
             for tc in test_cases
             if ac_id in tc.acceptance_criteria_ids
-            or any(p in tc.requirement_ids for p in parents)
+            or (
+                not tc.acceptance_criteria_ids
+                and any(p in tc.requirement_ids for p in parents)
+            )
         ]
         for tc in matching:
             referenced_ids.update(tc.requirement_ids)

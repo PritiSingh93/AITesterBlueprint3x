@@ -219,14 +219,35 @@ def test_results_render_from_session_state(configured, completed_run) -> None:
     assert "QATEST-7" in markdown
 
 
-def test_result_metrics_are_shown(configured, completed_run) -> None:
+def test_summary_leads_with_a_plain_sentence(configured, completed_run) -> None:
+    """A reader should learn the outcome before meeting a single number."""
     at = AppTest.from_file(APP, default_timeout=60)
     at.session_state["run_result"] = completed_run
     at.run()
 
-    labels = [m.label for m in at.metric]
-    assert "Completed" in labels
-    assert "Failed" in labels
+    banner = " ".join(s.value for s in at.success)
+    assert "every stage" in banner
+
+
+def test_summary_counts_the_deliverables(configured, completed_run) -> None:
+    at = AppTest.from_file(APP, default_timeout=60)
+    at.session_state["run_result"] = completed_run
+    at.run()
+
+    markdown = " ".join(m.value for m in at.markdown)
+    assert "Test cases written" in markdown
+    assert "Playwright specs" in markdown
+    assert "Requirement coverage" in markdown
+
+
+def test_the_run_id_is_explained_not_just_printed(configured, completed_run) -> None:
+    """"RUN-20260922-120330" means nothing to a reader who is not told."""
+    at = AppTest.from_file(APP, default_timeout=60)
+    at.session_state["run_result"] = completed_run
+    at.run()
+
+    captions = " ".join(c.value for c in at.caption)
+    assert "named after the date and time it started" in captions
 
 
 def test_downloads_are_offered(configured, completed_run) -> None:

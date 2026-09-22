@@ -137,22 +137,51 @@ def render_header(app_name: str) -> None:
     )
 
 
+# Badges carry a human label and a hover explanation. The SCREAMING_CASE enum
+# value stays in the manifest and the markdown, where it is machine-read; it is
+# not what a person should have to decode on screen.
+_SOURCE_BADGE = {
+    "MCP": ("qa-badge-mcp", "Jira · MCP", "Ticket read through the Jira MCP server."),
+    "REST": ("qa-badge-rest", "Jira · REST", "Ticket read from the Jira REST API."),
+    "FIXTURE": (
+        "qa-badge-fixture",
+        "Demo fixture",
+        "Ticket read from a local sample file, not from live Jira.",
+    ),
+}
+
+_READINESS_BADGE = {
+    "READY": (
+        "qa-badge-ready",
+        "Ready to run",
+        "The generated tests have everything they need to execute.",
+    ),
+    "NEEDS_CONFIGURATION": (
+        "qa-badge-config",
+        "Needs setup",
+        "The code compiles, but URLs, selectors or logins must be filled in "
+        "before it can run.",
+    ),
+    "NOT_AUTOMATED": (
+        "qa-badge-failed",
+        "No automation",
+        "No Playwright code was produced for this ticket.",
+    ),
+}
+
+
+def _badge(value: str, table: dict[str, tuple[str, str, str]], fallback: str) -> str:
+    css, label, hint = table.get(value, (fallback, value, ""))
+    title = f' title="{escape(hint)}"' if hint else ""
+    return f'<span class="qa-badge {css}"{title}>{escape(label)}</span>'
+
+
 def source_badge(source: str) -> str:
-    css = {
-        "MCP": "qa-badge-mcp",
-        "REST": "qa-badge-rest",
-        "FIXTURE": "qa-badge-fixture",
-    }.get(source, "qa-badge-rest")
-    return f'<span class="qa-badge {css}">{source}</span>'
+    return _badge(source, _SOURCE_BADGE, "qa-badge-rest")
 
 
 def readiness_badge(readiness: str) -> str:
-    css = {
-        "READY": "qa-badge-ready",
-        "NEEDS_CONFIGURATION": "qa-badge-config",
-        "NOT_AUTOMATED": "qa-badge-failed",
-    }.get(readiness, "qa-badge-config")
-    return f'<span class="qa-badge {css}">{readiness}</span>'
+    return _badge(readiness, _READINESS_BADGE, "qa-badge-config")
 
 
 # Round status indicators. Red is reserved for "required and missing", so a
@@ -288,7 +317,7 @@ def render_config_status(config: AppConfig) -> None:
             st.error("\n\n".join(f"- {p}" for p in problems))
 
 
-def _tile(label: str, value: str, hint: str = "", muted: bool = False) -> str:
+def tile(label: str, value: str, hint: str = "", muted: bool = False) -> str:
     css = " is-muted" if muted else ""
     return (
         f'<div class="qa-tile">'
@@ -299,7 +328,7 @@ def _tile(label: str, value: str, hint: str = "", muted: bool = False) -> str:
     )
 
 
-def _render_tile_row(tiles: list[str]) -> None:
+def render_tile_row(tiles: list[str]) -> None:
     for column, tile in zip(st.columns(len(tiles)), tiles, strict=True):
         column.markdown(tile, unsafe_allow_html=True)
 
@@ -309,19 +338,19 @@ def _render_advanced_settings(config: AppConfig) -> None:
     ac_field = config.rest.acceptance_criteria_field
 
     st.markdown('<div class="qa-group">Pipeline</div>', unsafe_allow_html=True)
-    _render_tile_row(
+    render_tile_row(
         [
-            _tile(
+            tile(
                 "Max tickets",
                 str(config.pipeline.max_tickets),
                 "Tickets beyond this are dropped from the run.",
             ),
-            _tile(
+            tile(
                 "Ticket timeout",
                 f"{config.pipeline.ticket_timeout_seconds}s",
                 "A ticket exceeding this is abandoned and marked failed.",
             ),
-            _tile(
+            tile(
                 "Retries",
                 str(config.pipeline.max_retries),
                 "Retry attempts for transient Jira failures.",
@@ -330,19 +359,19 @@ def _render_advanced_settings(config: AppConfig) -> None:
     )
 
     st.markdown('<div class="qa-group">Model</div>', unsafe_allow_html=True)
-    _render_tile_row(
+    render_tile_row(
         [
-            _tile(
+            tile(
                 "Temperature",
                 str(config.llm.temperature),
                 "Low keeps analysis consistent rather than creative.",
             ),
-            _tile(
+            tile(
                 "Max tokens",
                 str(config.llm.max_tokens),
                 "Output budget per agent. Raise if reports truncate.",
             ),
-            _tile(
+            tile(
                 "Model",
                 config.llm.model or "not set",
                 "Configurable so provider renames cannot break the app.",
@@ -352,21 +381,21 @@ def _render_advanced_settings(config: AppConfig) -> None:
     )
 
     st.markdown('<div class="qa-group">Jira</div>', unsafe_allow_html=True)
-    _render_tile_row(
+    render_tile_row(
         [
-            _tile(
+            tile(
                 "Key pattern",
                 config.jira_key_pattern,
                 "Ticket IDs must match this to be accepted.",
             ),
-            _tile(
+            tile(
                 "Acceptance criteria field",
                 ac_field or "Not configured",
                 "Custom field id holding acceptance criteria. When unset, they "
                 "are read from the description.",
                 muted=not ac_field,
             ),
-            _tile(
+            tile(
                 "Comments",
                 "Included" if config.rest.include_comments else "Excluded",
                 f"Up to {config.rest.max_comments} comments are sent to the "

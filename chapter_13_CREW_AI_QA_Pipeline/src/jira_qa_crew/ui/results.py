@@ -16,7 +16,7 @@ from ..services.renderers import (
     render_ticket_result_md,
     render_traceability_csv,
 )
-from .components import readiness_badge, source_badge
+from .components import readiness_badge, render_tile_row, source_badge, tile
 
 _OUTCOME_ICON = {
     TicketOutcome.COMPLETED: "🟢",
@@ -41,28 +41,116 @@ def render_run(run: RunResult) -> None:
             _render_ticket(result)
 
 
-def _render_summary(run: RunResult) -> None:
-    cols = st.columns(6)
-    cols[0].metric("Run", run.run_id.replace("RUN-", ""))
-    cols[1].metric("Tickets", len(run.results))
-    cols[2].metric("Completed", len(run.completed))
-    cols[3].metric("With warnings", len(run.with_warnings))
-    cols[4].metric("Partial", len(run.partial))
-    cols[5].metric("Failed", len(run.failed))
+def _plural(count: int, noun: str) -> str:
+    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
+
+
+def _humanize_duration(seconds: float | None) -> str:
+    """"1m 46s" is read at a glance; "105.52s" has to be divided first."""
+    if not seconds:
+        return "—"
+    total = int(round(seconds))
+    if total < 60:
+        return f"{total}s"
+    minutes, rest = divmod(total, 60)
+    return f"{minutes}m {rest:02d}s"
+
+
+def _run_totals(run: RunResult) -> tuple[int, int, int | None]:
+    """Test cases written, specs generated, and requirement coverage percent."""
+    cases = automated = covered = requirements = 0
+    for result in run.results:
+        if result.test_cases:
+            cases += len(result.test_cases.test_cases)
+        if result.coverage:
+            automated += result.coverage.automated_test_cases
+            covered += result.coverage.covered_requirements
+            requirements += result.coverage.total_requirements
+    pct = round(100 * covered / requirements) if requirements else None
+    return cases, automated, pct
+
+
+def _render_verdict(run: RunResult) -> None:
+    """Say what happened in one sentence, before showing a single number."""
+    total = len(run.results)
 
     if not run.successful:
-        st.error("No ticket produced usable output. See the per-ticket errors below.")
-    elif run.partial:
-        st.warning(
-            f"{len(run.partial)} ticket(s) stopped early. The stages that did "
-            "finish are complete and downloadable below — only the remaining "
-            "stages are missing."
+        st.error(
+            f"Nothing usable came back from {_plural(total, 'ticket')}. "
+            "Open the ticket below to see why and what to change.",
+            icon="🔴",
         )
-    elif run.failed:
-        st.warning(
-            f"{len(run.failed)} of {len(run.results)} tickets failed. "
-            "The rest completed."
+        return
+
+    if len(run.completed) == total:
+        st.success(
+            f"Done — all {_plural(total, 'ticket')} went through every stage. "
+            "The requirements analysis, test plan, test cases and Playwright "
+            "code are ready below.",
+            icon="✅",
         )
+        return
+
+    parts = []
+    if run.completed:
+        parts.append(f"{len(run.completed)} finished completely")
+    if run.with_warnings:
+        parts.append(f"{len(run.with_warnings)} finished with warnings")
+    if run.partial:
+        parts.append(f"{len(run.partial)} stopped part-way")
+    if run.failed:
+        parts.append(f"{len(run.failed)} failed")
+    st.warning(
+        f"Out of {_plural(total, 'ticket')}: {', '.join(parts)}. "
+        "Everything that did finish is kept and downloadable below.",
+        icon="⚠️",
+    )
+
+
+def _render_totals(run: RunResult) -> None:
+    """Lead with the deliverables, not with the run's bookkeeping."""
+    cases, automated, pct = _run_totals(run)
+    duration = (
+        (run.finished_at - run.started_at).total_seconds()
+        if run.started_at and run.finished_at
+        else None
+    )
+    started = (
+        run.started_at.strftime("%d %b %Y at %H:%M UTC") if run.started_at else "—"
+    )
+
+    render_tile_row(
+        [
+            tile(
+                "Test cases written",
+                str(cases),
+                f"Across {_plural(len(run.results), 'ticket')}, each with steps "
+                "and an expected result.",
+            ),
+            tile(
+                "Playwright specs",
+                str(automated),
+                "Test cases turned into runnable TypeScript.",
+            ),
+            tile(
+                "Requirement coverage",
+                "—" if pct is None else f"{pct}%",
+                "Requirements with at least one test case. Counted in Python "
+                "from the saved objects, not claimed by the model.",
+                muted=pct is None,
+            ),
+            tile(
+                "Time taken",
+                _humanize_duration(duration),
+                f"Started {started}.",
+            ),
+        ]
+    )
+
+
+def _render_summary(run: RunResult) -> None:
+    _render_verdict(run)
+    _render_totals(run)
 
     left, right = st.columns([1, 3])
     with left:
@@ -78,8 +166,13 @@ def _render_summary(run: RunResult) -> None:
                 mime="application/zip",
                 use_container_width=True,
             )
-    if run.output_dir:
-        st.caption(f"Artifacts written to `{run.output_dir}`")
+    # The run id is a timestamp, which is not self-explanatory on its own — say
+    # so once, here, rather than showing it as a bare number people must decode.
+    where = f" · saved in `{run.output_dir}`" if run.output_dir else ""
+    st.caption(
+        f"Run `{run.run_id}` — named after the date and time it started"
+        f"{where}"
+    )
 
 
 def _render_ticket(result: TicketResult) -> None:
@@ -162,12 +255,18 @@ def _render_analysis(result: TicketResult) -> None:
     cols[0].metric("Requirements", len(result.analysis.all_requirements))
     cols[1].metric("Acceptance criteria", len(payload.acceptance_criteria))
     cols[2].metric("Risks", len(payload.risks))
-    cols[3].metric("Gaps", len(payload.missing_information))
+    cols[3].metric("Missing details", len(payload.missing_information))
 
+    # The full list already appears under "Missing Information" in the document
+    # below, which is also what downloads. Repeating it here made the same six
+    # bullets show twice on one screen, so this only points at it.
     if payload.missing_information:
         st.warning(
-            "Missing information the ticket did not provide:\n\n"
-            + "\n".join(f"- {m}" for m in payload.missing_information)
+            f"The ticket left out "
+            f"{_plural(len(payload.missing_information), 'detail')} the tests "
+            "need — see **Missing Information** near the end of the document "
+            "below.",
+            icon="⚠️",
         )
 
     markdown = render_requirements_md(result.analysis)
