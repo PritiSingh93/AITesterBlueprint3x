@@ -306,9 +306,11 @@ def render_config_status(config: AppConfig) -> None:
         )
 
         if config.demo_mode:
+            keys = demo_ticket_keys()
+            offer = f" Try {', '.join(keys)}." if keys else ""
             st.warning(
-                "DEMO MODE is on. Tickets are read from local fixtures and every "
-                "artifact is labelled FIXTURE.",
+                "DEMO MODE is on. Tickets are read from local sample files, not "
+                f"from Jira, and every artifact is labelled FIXTURE.{offer}",
                 icon="🧪",
             )
 
@@ -413,9 +415,25 @@ def _render_advanced_settings(config: AppConfig) -> None:
         )
 
 
+def demo_ticket_keys() -> list[str]:
+    """The sample tickets demo mode can serve, or [] when there are none."""
+    try:
+        from ..jira.fixture_provider import JiraFixtureProvider
+
+        return JiraFixtureProvider().available_keys()
+    except Exception:  # pragma: no cover - a missing fixture dir is not fatal
+        return []
+
+
 def render_ticket_input(config: AppConfig) -> tuple[str, str, bool, TicketParseResult]:
     """Render the input area and return (raw, mode, submitted, parsed)."""
     st.subheader("1 · Choose tickets")
+
+    # In demo mode the placeholder must name tickets that actually exist. A
+    # visitor to a public demo has no Jira to look them up in, and a suggested
+    # key that resolves to nothing reads as the app being broken.
+    demo_keys = demo_ticket_keys() if config.demo_mode else []
+    placeholder = "\n".join(demo_keys) if demo_keys else "QATEST-7\nQATEST-8, VWO-50"
 
     col_input, col_mode = st.columns([3, 1])
     with col_input:
@@ -423,9 +441,11 @@ def render_ticket_input(config: AppConfig) -> tuple[str, str, bool, TicketParseR
             "Jira ticket IDs",
             key="ticket_input",
             height=120,
-            placeholder="QATEST-7\nQATEST-8, VWO-50",
+            placeholder=placeholder,
             help="Separate with commas, spaces, semicolons or new lines.",
         )
+        if demo_keys:
+            st.caption(f"Demo mode — available sample tickets: {', '.join(demo_keys)}")
     with col_mode:
         mode_label = st.selectbox(
             "Integration mode",

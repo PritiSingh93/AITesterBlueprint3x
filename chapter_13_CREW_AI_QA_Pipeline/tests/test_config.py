@@ -101,6 +101,19 @@ def test_valid_configuration_has_no_problems(base_config) -> None:
     assert replace(base_config, jira_integration_mode="rest").validate() == []
 
 
+def test_demo_mode_still_requires_a_model(base_config) -> None:
+    """Demo mode fakes Jira, not the crew. The agents still call the provider."""
+    config = replace(
+        base_config,
+        demo_mode=True,
+        llm=replace(base_config.llm, api_key=""),
+    )
+    problems = config.validate()
+
+    assert any("LLM is not configured" in p for p in problems)
+    assert any("only Jira is faked" in p for p in problems)
+
+
 def test_demo_mode_does_not_require_a_jira_provider(base_config) -> None:
     config = replace(
         base_config,

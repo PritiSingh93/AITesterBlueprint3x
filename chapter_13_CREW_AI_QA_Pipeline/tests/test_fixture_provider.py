@@ -11,6 +11,23 @@ from jira_qa_crew.jira.fixture_provider import JiraFixtureProvider
 from jira_qa_crew.models import ProviderSource
 
 
+def test_available_keys_are_offered_up_front(tmp_path) -> None:
+    """A public demo has no Jira to browse, so the UI must name its tickets."""
+    (tmp_path / "QATEST-9.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "QATEST-7.json").write_text("{}", encoding="utf-8")
+
+    assert JiraFixtureProvider(tmp_path).available_keys() == ["QATEST-7", "QATEST-9"]
+
+
+def test_available_keys_is_empty_without_a_fixture_directory(tmp_path) -> None:
+    assert JiraFixtureProvider(tmp_path / "missing").available_keys() == []
+
+
+def test_the_shipped_fixtures_are_listable() -> None:
+    """The deployed demo depends on these existing, so pin that they do."""
+    assert JiraFixtureProvider().available_keys() == ["QATEST-7", "QATEST-9"]
+
+
 def test_shipped_fixtures_load() -> None:
     provider = JiraFixtureProvider()
     assert provider.configured, "the repo ships fixtures/jira"

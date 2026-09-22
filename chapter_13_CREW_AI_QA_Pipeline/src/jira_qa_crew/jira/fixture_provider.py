@@ -30,6 +30,16 @@ class JiraFixtureProvider(JiraProvider):
     def configured(self) -> bool:
         return self._dir.is_dir()
 
+    def available_keys(self) -> list[str]:
+        """Ticket keys this provider can serve.
+
+        A public demo has no Jira to browse, so the UI offers these up front
+        rather than letting a visitor guess a key and meet an error.
+        """
+        if not self.configured:
+            return []
+        return sorted(p.stem.upper() for p in self._dir.glob("*.json"))
+
     def fetch_issue(self, issue_key: str) -> JiraIssue:
         if not self.configured:
             raise JiraProviderUnavailableError(
@@ -37,7 +47,7 @@ class JiraFixtureProvider(JiraProvider):
             )
         path = self._dir / f"{issue_key.upper()}.json"
         if not path.is_file():
-            available = ", ".join(sorted(p.stem for p in self._dir.glob("*.json")))
+            available = ", ".join(self.available_keys())
             raise JiraNotFoundError(
                 f"No demo fixture for {issue_key}. Available: {available or 'none'}"
             )

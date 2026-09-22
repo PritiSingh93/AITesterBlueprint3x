@@ -314,12 +314,55 @@ Opt-in integration tests need `JIRA_URL`, `JIRA_API_TOKEN` and `INTEGRATION_TICK
 
 ## Deployment
 
-### Streamlit Community Cloud
+> **Not Vercel.** Streamlit is a long-running stateful server holding a WebSocket per session,
+> a ticket takes roughly 100 seconds, and artifacts are written to disk. Vercel's serverless
+> functions start, respond within seconds, and die, with an ephemeral read-only filesystem.
+> Any Docker host or Streamlit Community Cloud works; Vercel cannot.
+
+### Streamlit Community Cloud — public demo, no Jira credentials
+
+Demo mode reads tickets from `fixtures/jira/` instead of Jira, so nothing on the public server
+can reach a real Jira site. The four agents still run for real, so a model key is still needed.
 
 1. Push the repository to GitHub.
-2. Create an app pointing at `chapter_13_CREW_AI_QA_Pipeline/app.py`.
-3. Paste `.streamlit/secrets.toml.example` contents into **Secrets** and fill them in.
-4. Set `JIRA_INTEGRATION_MODE=rest`.
+2. Create an app:
+   - **Main file path:** `chapter_13_CREW_AI_QA_Pipeline/app.py`
+   - **Python version:** `3.11`, under *Advanced settings*. Parts of CrewAI's dependency tree
+     have no wheels for 3.13+ and fail to build from source.
+3. Paste into **Secrets**:
+
+   ```toml
+   DEMO_MODE            = "true"
+   LLM_MODEL            = "openai/openai/gpt-oss-120b"
+   LLM_API_KEY          = "gsk_your_groq_key"
+   LLM_BASE_URL         = "https://api.groq.com/openai/v1"
+   LLM_MAX_TOKENS       = "4800"
+   LLM_REASONING_EFFORT = "low"
+   LLM_TPM_LIMIT        = "8000"
+   LLM_PROMPT_RESERVE   = "3200"
+   ```
+
+   No `JIRA_*` keys. Demo mode does not need them, and their absence is what keeps a public
+   URL away from your Jira site.
+
+The sidebar and the ticket box name the available sample tickets, so a visitor does not have
+to guess a key.
+
+Two things to know before sharing the link:
+
+- **A Community Cloud app is public and this app has no login.** In demo mode there is no Jira
+  token to expose, but visitors still spend your model quota — on the Groq free tier that is
+  200,000 tokens/day against roughly 15–20k per ticket, so about ten runs.
+- **Dependencies come from `chapter_13_CREW_AI_QA_Pipeline/requirements.txt`.** If the build
+  reports missing packages, Community Cloud did not pick that file up from a subdirectory; copy
+  it to the repository root.
+
+### Streamlit Community Cloud — live Jira
+
+Same as above, but set `JIRA_INTEGRATION_MODE = "rest"` plus `JIRA_URL`, `JIRA_EMAIL` and
+`JIRA_API_TOKEN`, and leave `DEMO_MODE` unset. **Put an authentication gate in front of it
+first:** the ticket allowlist stops the *model* reaching other tickets, not a visitor typing
+another key into the box.
 
 Community Cloud cannot spawn a local stdio MCP subprocess. Use `rest` mode there, or point
 `JIRA_MCP_TRANSPORT=streamable_http` at a remote MCP server.
@@ -346,8 +389,10 @@ generated artifacts survive the container.
 - Jira content is treated as untrusted data. It is fenced in explicit delimiters, the guard
   instructs agents to ignore embedded instructions, and content cannot forge a closing delimiter to
   break out of the block.
-- The Jira tool answers only for tickets in the current run, so "now read ADMIN-1" in a ticket
-  description is refused rather than obeyed.
+- The agents have no tools at all. The ticket is fetched by the gateway before the crew starts
+  and embedded in the prompt, so "now read ADMIN-1" in a ticket description has nothing to act
+  on — it is not refused by an allowlist, it is unreachable. (`FetchJiraIssueTool` keeps that
+  allowlist for anything that does hand a model a tool.)
 - Every path segment — ticket keys and model-proposed filenames alike — is sanitized, and writes are
   verified to resolve inside the run directory.
 - Input size, ticket count, network timeouts and retries are bounded. No `eval`, no `exec`, no shell

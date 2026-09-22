@@ -188,10 +188,15 @@ class AppConfig:
                 "JIRA_INTEGRATION_MODE must be one of: auto, mcp, rest "
                 f"(got {self.jira_integration_mode!r})."
             )
-        if not self.demo_mode and not self.llm.configured:
+        # Demo mode substitutes fixtures for Jira. It does not substitute
+        # anything for the model: the four agents still do the real work, so a
+        # demo deployment without a key would offer a Run button that can only
+        # fail once the crew starts.
+        if not self.llm.configured:
             problems.append(
                 "LLM is not configured. Set LLM_MODEL and LLM_API_KEY "
-                "in your environment or .streamlit/secrets.toml."
+                "in your environment or .streamlit/secrets.toml. "
+                "This is required in demo mode too: only Jira is faked."
             )
         if self.demo_mode:
             return problems
