@@ -1,4 +1,4 @@
-"""Jira ticket -> test plan -> test cases -> a real browser run.
+﻿"""Jira ticket -> test plan -> test cases -> a real browser run.
 
     python 012_Fetch_JIRA_QA_Orch.py VWO-49
 
@@ -42,19 +42,37 @@ for candidate in (Path(__file__).parents[3] / "chapter_13_CREW_AI_QA_Pipeline/.e
 # "deepseek-chat" is an alias and deepseek-v4-pro costs 4x more.
 MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-flash")
 
-# Stage 3 (tool calling) is happy with the default thinking mode.
-llm = ChatDeepSeek(model=MODEL, api_key=os.environ["DEEPSEEK_API"], temperature=0)
 
-# Stage 2 is NOT. response_format pins tool_choice to one function, and
-# deepseek-flash rejects that while thinking is on:
-#     400 "Thinking mode does not support this tool_choice"
-# extra_body reaches the raw request body; model_kwargs does not.
-planner_llm = ChatDeepSeek(
-    model=MODEL,
-    api_key=os.environ["DEEPSEEK_API"],
-    temperature=0,
-    extra_body={"thinking": {"type": "disabled"}},
-)
+def _deepseek_key() -> str:
+    """Read the key when a model is actually needed, not at import.
+
+    fetch_jira_issue below is pure stdlib, and 013 imports this module purely
+    to reuse it. Building the clients at module level meant a missing key made
+    that import fail, taking down a stage that never calls DeepSeek.
+    """
+    key = os.getenv("DEEPSEEK_API")
+    if not key:
+        sys.exit("DEEPSEEK_API is not set. Add it to chapter_17_LangChain/.env")
+    return key
+
+
+def get_llm() -> ChatDeepSeek:
+    """Stage 3 (tool calling) is happy with the default thinking mode."""
+    return ChatDeepSeek(model=MODEL, api_key=_deepseek_key(), temperature=0)
+
+
+def get_planner_llm() -> ChatDeepSeek:
+    """Stage 2 is NOT. response_format pins tool_choice to one function, and
+    deepseek-flash rejects that while thinking is on:
+        400 "Thinking mode does not support this tool_choice"
+    extra_body reaches the raw request body; model_kwargs does not.
+    """
+    return ChatDeepSeek(
+        model=MODEL,
+        api_key=_deepseek_key(),
+        temperature=0,
+        extra_body={"thinking": {"type": "disabled"}},
+    )
 
 # The app the generated cases actually run against.
 TARGET_URL = os.getenv("TARGET_APP_URL", "https://app.thetestingacademy.com/playwright/ttacart/")
@@ -116,7 +134,7 @@ def _fixture(key: str, why: str) -> dict:
     if not path.exists():
         print(f"\n[FATAL] Could not reach Jira ({why}) and no fixture at {path}")
         sys.exit(1)
-    data = json.loads(path.read_text())
+    data = json.loads(path.read_text(encoding="utf-8"))
     data["source"] = f"OFFLINE FIXTURE ({path.name}) - live fetch failed: {why}"
     return data
 
@@ -205,7 +223,7 @@ async def main() -> None:
 
     # ---- stage 2: plan --------------------------------------------------
     print(f"\n{'='*70}\nSTAGE 2  Writing the test plan\n{'='*70}")
-    planner = create_agent(model=planner_llm, system_prompt=PLANNER_PROMPT,
+    planner = create_agent(model=get_planner_llm(), system_prompt=PLANNER_PROMPT,
                            response_format=TestPlan)
     planned = await planner.ainvoke({"messages": [{"role": "user", "content":
         f"Ticket {issue['key']} ({issue['issuetype']}, priority {issue['priority']})\n"
@@ -228,7 +246,10 @@ async def main() -> None:
             print(f"         not automatable: {tc.reason_if_not}")
 
     out = Path(f"test_plan_{key}.json")
-    out.write_text(plan.model_dump_json(indent=2))
+    # Explicit encoding: write_text defaults to the Windows ANSI codepage, and
+    # a single non-ASCII character from the model crashes the run here, after
+    # every stage has already succeeded.
+    out.write_text(plan.model_dump_json(indent=2), encoding="utf-8")
     print(f"\nPlan written to {out}")
 
     if args.dry_run:
@@ -251,7 +272,7 @@ async def main() -> None:
             f"Login: {TARGET_USER} / {TARGET_PASS}\n\n{cases}\n\n"
             f"Report PASS or FAIL for each id, then a final summary.")
 
-    executor = create_agent(model=llm, tools=PLAYWRIGHT_TOOLS, system_prompt=EXECUTOR_PROMPT)
+    executor = create_agent(model=get_llm(), tools=PLAYWRIGHT_TOOLS, system_prompt=EXECUTOR_PROMPT)
     result = await executor.ainvoke({"messages": [{"role": "user", "content": task}]})
 
     print("\n----- steps taken -----")

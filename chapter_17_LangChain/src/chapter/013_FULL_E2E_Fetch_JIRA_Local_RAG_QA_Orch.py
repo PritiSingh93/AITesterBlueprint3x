@@ -51,8 +51,24 @@ SLACK_CHANNEL = os.getenv("SLACK_CHANNEL", "#qa-automation")
 
 # Planner: Groq. Executor + reporter: DeepSeek.
 planner_llm = ChatGroq(model=os.getenv("LLM_MODEL", "openai/gpt-oss-120b"), temperature=0)
-browser_llm = ChatDeepSeek(model=os.getenv("DEEPSEEK_MODEL", "deepseek-flash"),
-                           api_key=os.environ["DEEPSEEK_API"], temperature=0)
+
+
+def get_browser_llm() -> ChatDeepSeek:
+    """Built on first use, not at import.
+
+    Stages 1-3 are Groq only, and --dry-run stops before stage 4 ever runs.
+    Constructing this at module level meant a missing DEEPSEEK_API killed the
+    planning run too, which is the half the key is not needed for.
+    """
+    key = os.getenv("DEEPSEEK_API")
+    if not key:
+        sys.exit(
+            "DEEPSEEK_API is not set, and stages 4-5 need it.\n"
+            "  - add DEEPSEEK_API=... to chapter_17_LangChain/.env, or\n"
+            "  - pass --dry-run to stop after planning, which only needs Groq."
+        )
+    return ChatDeepSeek(model=os.getenv("DEEPSEEK_MODEL", "deepseek-flash"),
+                        api_key=key, temperature=0)
 
 
 # ------------------------------------------------------------------ schema
@@ -204,7 +220,12 @@ async def main() -> None:
         print(f"\n{len(dupes)} case(s) already covered by the library: "
               f"{', '.join(tc.id + ' -> ' + ','.join(tc.related_existing_ids) for tc in dupes)}")
 
-    Path(f"test_plan_{key}.json").write_text(plan.model_dump_json(indent=2))
+    # encoding is explicit: write_text defaults to the Windows ANSI codepage,
+    # and a model that emits a non-breaking hyphen would otherwise crash the
+    # run here, after every stage had already succeeded.
+    Path(f"test_plan_{key}.json").write_text(
+        plan.model_dump_json(indent=2), encoding="utf-8"
+    )
     print(f"\nPlan written to test_plan_{key}.json")
 
     if args.dry_run:
@@ -218,6 +239,7 @@ async def main() -> None:
 
     # ---- 4. Execute -----------------------------------------------------
     banner(4, "Execute in Chromium (DeepSeek)")
+    browser_llm = get_browser_llm()
     cases = "\n\n".join(
         f"{tc.id} ({tc.priority}) {tc.title}\n"
         + "\n".join(f"  {i}. {s}" for i, s in enumerate(tc.steps, 1))
