@@ -51,3 +51,6 @@ chapter_07_RAG/RAG_TestCase_generator/frontend/dist/
 
 # Vercel build output for the chapter 13 landing page
 dist/
+
+# Screenshots produced by the chapter 17 Playwright agent runs
+screenshots/
